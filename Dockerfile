@@ -1,7 +1,6 @@
 ARG PYTHON_VERSION=3.9.16
 
-
-FROM python:${PYTHON_VERSION}-slim-bullseye as local
+FROM python:${PYTHON_VERSION}-slim-bullseye as base
 
 RUN apt-get clean  \
   && apt-get update \
@@ -25,9 +24,7 @@ ENV PYTHONUNBUFFERED 1
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-
-# set work directory
-WORKDIR /
+FROM base as builder
 
 # install poetry
 COPY ./poetry-requirements.txt poetry-requirements.txt
@@ -36,7 +33,11 @@ RUN pip install -r poetry-requirements.txt --no-cache-dir
 COPY ./pyproject.toml pyproject.toml
 COPY ./poetry.lock poetry.lock
 
-# install local (dev) dependencies
-RUN poetry export -f requirements.txt --output requirements.txt --with dev --without-hashes
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
+# install mlinspect
+RUN poetry install
 
+
+FROM builder as final
+
+COPY . .
+EXPOSE 8888
