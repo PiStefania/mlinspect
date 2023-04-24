@@ -33,11 +33,15 @@ RUN pip install -r poetry-requirements.txt --no-cache-dir
 COPY ./pyproject.toml pyproject.toml
 COPY ./poetry.lock poetry.lock
 
+# install local (dev) dependencies
+RUN poetry export -f requirements.txt --output requirements.txt --with dev --without-hashes
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
+
 # install mlinspect
 RUN poetry install
 
 
 FROM builder as final
 
-COPY . .
 EXPOSE 8888
+CMD ["jupyter", "notebook", "--port=8888", "--no-browser", "--ip=0.0.0.0"]

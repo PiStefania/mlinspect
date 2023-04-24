@@ -13,14 +13,14 @@ build:
 	docker build -t mlinspect .
 
 run: build
-	docker run mlinspect
+	docker run --rm -p 8888:8888 --name mlinspect -d -t mlinspect
 
 logs:
-	docker logs mlinspect
+	docker logs mlinspect -f
 
 teardown:
 	docker stop mlinspect
-	docker rm mlinspect
+	docker rmi mlinspect
 
 recreate: teardown run
 
