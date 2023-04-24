@@ -13,7 +13,10 @@ build:
 	docker build -t mlinspect .
 
 run: build
-	docker run --rm -p 8888:8888 --name mlinspect -d -t mlinspect
+	docker run --rm -p 8888:8888 -v $(shell pwd)/examples:/mlinspect --name mlinspect -d -t mlinspect
+
+notebook:
+	docker exec -it mlinspect jupyter notebook --no-browser --allow-root --ip="0.0.0.0"
 
 logs:
 	docker logs mlinspect -f
@@ -23,9 +26,6 @@ teardown:
 	docker rmi mlinspect
 
 recreate: teardown run
-
-test:
-	docker exec -it mlinspect pytest $(target)
 
 
 .PHONY: \

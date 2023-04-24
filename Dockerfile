@@ -43,5 +43,7 @@ RUN poetry install
 
 FROM builder as final
 
+# Get folder of mlinspect examples
+WORKDIR /mlinspect
+
 EXPOSE 8888
-CMD ["jupyter", "notebook", "--port=8888", "--no-browser", "--ip=0.0.0.0"]
