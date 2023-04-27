@@ -13,7 +13,7 @@ build:
 	docker build -t mlinspect .
 
 run: build
-	docker run --rm -p 8888:8888 -v $(shell pwd)/examples:/examples --name mlinspect -d -t mlinspect
+	docker run --rm -p 8888:8888 -v $(shell pwd)/examples:/project/examples --name mlinspect -d -t mlinspect
 
 notebook:
 	docker exec -it mlinspect jupyter notebook --no-browser --allow-root --ip="0.0.0.0"

@@ -23,39 +23,42 @@ ENV JUPYTER_PLATFORM_DIRS 1
 ENV SETUPTOOLS_USE_DISTUTILS stdlib
 
 # create virtual environment
-RUN python -m venv /venv
-ENV PATH="/venv/bin:$PATH"
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 
 FROM base as builder
 
 # set work directory
-WORKDIR /
+WORKDIR /project
 
 # install poetry
-COPY ./poetry-requirements.txt poetry-requirements.txt
+COPY poetry-requirements.txt poetry-requirements.txt
 RUN pip install -r poetry-requirements.txt --no-cache-dir
 
-COPY ./pyproject.toml pyproject.toml
-COPY ./poetry.lock poetry.lock
+COPY pyproject.toml pyproject.toml
+COPY poetry.lock poetry.lock
 
 # install local (dev) dependencies
 RUN poetry export -f requirements.txt --output requirements.txt --with dev --without-hashes
 RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
 
-COPY ./mlinspect /mlinspect
-COPY ./README.md /README.md
-RUN poetry build && /venv/bin/pip install dist/*.whl
+COPY mlinspect/ mlinspect/
+COPY README.md README.md
+RUN poetry build
+RUN pip install dist/*.whl
 
 FROM builder as final
 
-COPY  --from=builder /venv /venv
+COPY  --from=builder /opt/venv /opt/venv
 
 RUN jupyter --paths
 RUN ipython kernel install --user --name="venv"
 
-COPY ./example_pipelines /example_pipelines
-COPY ./demo /demo
-COPY ./test /test
+COPY example_pipelines/ example_pipelines/
+COPY demo/ demo/
+COPY test/ test/
+
+ENV PYTHONPATH /project
 
 EXPOSE 8888
