@@ -23,7 +23,7 @@ ENV JUPYTER_PLATFORM_DIRS 1
 ENV SETUPTOOLS_USE_DISTUTILS stdlib
 
 # create virtual environment
-RUN python -m venv venv
+RUN python -m venv /venv
 ENV PATH="/venv/bin:$PATH"
 
 
@@ -43,6 +43,10 @@ COPY ./poetry.lock poetry.lock
 RUN poetry export -f requirements.txt --output requirements.txt --with dev --without-hashes
 RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
 
+COPY ./mlinspect /mlinspect
+COPY ./README.md /README.md
+RUN poetry build && /venv/bin/pip install dist/*.whl
+
 FROM builder as final
 
 COPY  --from=builder /venv /venv
@@ -50,7 +54,6 @@ COPY  --from=builder /venv /venv
 RUN jupyter --paths
 RUN ipython kernel install --user --name="venv"
 
-COPY ./mlinspect /mlinspect
 COPY ./example_pipelines /example_pipelines
 COPY ./demo /demo
 COPY ./test /test
