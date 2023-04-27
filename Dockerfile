@@ -58,6 +58,7 @@ RUN ipython kernel install --user --name="venv"
 COPY example_pipelines/ example_pipelines/
 COPY demo/ demo/
 COPY test/ test/
+COPY .pylintrc .pylintrc
 
 ENV PYTHONPATH /project
 
