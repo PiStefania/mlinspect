@@ -19,12 +19,18 @@ RUN apt-get clean  \
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV JUPYTER_PLATFORM_DIRS 1
+ENV SETUPTOOLS_USE_DISTUTILS stdlib
 
 # create virtual environment
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+RUN python -m venv venv
+ENV PATH="/venv/bin:$PATH"
+
 
 FROM base as builder
+
+# set work directory
+WORKDIR /
 
 # install poetry
 COPY ./poetry-requirements.txt poetry-requirements.txt
@@ -37,13 +43,16 @@ COPY ./poetry.lock poetry.lock
 RUN poetry export -f requirements.txt --output requirements.txt --with dev --without-hashes
 RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
 
-# install mlinspect
-RUN poetry install
-
-
 FROM builder as final
 
-# Get folder of mlinspect examples
-WORKDIR /mlinspect
+COPY  --from=builder /venv /venv
+
+RUN jupyter --paths
+RUN ipython kernel install --user --name="venv"
+
+COPY ./mlinspect /mlinspect
+COPY ./example_pipelines /example_pipelines
+COPY ./demo /demo
+COPY ./test /test
 
 EXPOSE 8888
