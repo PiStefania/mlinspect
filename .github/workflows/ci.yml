@@ -68,7 +68,7 @@ jobs:
           push: false
           load: true
           context: .
-          target: local
+          target: final
           tags: ${{ env.LOCAL_APP_TAG }}
           cache-from: type=local,src=${{ env.BUILDX_LOCAL_CACHE_DIR }}
       - name: Run tests
