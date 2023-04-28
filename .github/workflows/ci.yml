@@ -71,6 +71,8 @@ jobs:
           target: final
           tags: ${{ env.LOCAL_APP_TAG }}
           cache-from: type=local,src=${{ env.BUILDX_LOCAL_CACHE_DIR }}
+      - name: Run docker image
+        run: make run
       - name: Run tests
         run: make test
       - name: Upload Coverage Report
