@@ -72,7 +72,7 @@ jobs:
           tags: ${{ env.LOCAL_APP_TAG }}
           cache-from: type=local,src=${{ env.BUILDX_LOCAL_CACHE_DIR }}
       - name: Run tests
-        run: make test exec_args="-T"
+        run: make test
       - name: Upload Coverage Report
         uses: codecov/codecov-action@v1
         with:
