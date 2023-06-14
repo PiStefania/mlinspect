@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 
 services:
   mlinspect:
@@ -9,7 +9,7 @@ services:
       context: .
       target: final
     ports:
-      - 8888:8888
+      - "8888:8888"
     volumes:
-      - ./examples:/project/examples
       - .:/project
+    command: jupyter notebook --no-browser --allow-root --ip="0.0.0.0"
