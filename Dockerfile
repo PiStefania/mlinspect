@@ -37,7 +37,7 @@ COPY poetry-requirements.txt poetry-requirements.txt
 RUN pip install -r poetry-requirements.txt --no-cache-dir
 
 COPY pyproject.toml pyproject.toml
-COPY poetry.lock poetry.lock
+RUN poetry lock
 
 # install local (dev) dependencies
 RUN poetry export -f requirements.txt --output requirements.txt --with dev --without-hashes
