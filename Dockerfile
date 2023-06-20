@@ -21,6 +21,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV JUPYTER_PLATFORM_DIRS 1
 ENV SETUPTOOLS_USE_DISTUTILS stdlib
+ENV POETRY_VIRTUALENVS_CREATE false
 
 # create virtual environment
 RUN python -m venv /opt/venv
@@ -37,7 +38,7 @@ COPY poetry-requirements.txt poetry-requirements.txt
 RUN pip install -r poetry-requirements.txt --no-cache-dir
 
 COPY pyproject.toml pyproject.toml
-RUN poetry lock
+COPY poetry.lock poetry.lock
 
 # install local (dev) dependencies
 RUN poetry export -f requirements.txt --output requirements.txt --with dev --without-hashes
@@ -59,6 +60,7 @@ COPY example_pipelines/ example_pipelines/
 COPY demo/ demo/
 COPY test/ test/
 COPY .pylintrc .pylintrc
+COPY codecov.yml codecov.yml
 
 ENV PYTHONPATH /project
 
