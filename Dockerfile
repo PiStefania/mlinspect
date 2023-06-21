@@ -26,8 +26,6 @@ ENV POETRY_VIRTUALENVS_CREATE false
 # create virtual environment
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install tensorflow==
-
 
 FROM base as builder
 
