@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  mlinspect:
+    image: mlinspect
+    restart: unless-stopped
+    build:
+      context: .
+      target: final
