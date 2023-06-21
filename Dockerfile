@@ -26,6 +26,7 @@ ENV POETRY_VIRTUALENVS_CREATE false
 # create virtual environment
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+RUN /opt/venv/bin/pip install wheel
 
 FROM base as builder
 
@@ -42,6 +43,7 @@ COPY poetry.lock poetry.lock
 # install local (dev) dependencies
 RUN poetry export -f requirements.txt --output requirements.txt --with dev --without-hashes
 RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
+RUN /opt/venv/bin/pip install numpy --upgrade  --ignore-installed
 
 COPY mlinspect/ mlinspect/
 COPY README.md README.md

@@ -10,8 +10,8 @@ from sklearn import preprocessing, compose, tree, impute, linear_model, model_se
 from sklearn.feature_extraction import text
 from sklearn.linear_model._stochastic_gradient import DEFAULT_EPSILON
 from sklearn.metrics import accuracy_score
-from tensorflow.keras.wrappers import scikit_learn as keras_sklearn_external  # pylint: disable=no-name-in-module
-from tensorflow.python.keras.wrappers import scikit_learn as keras_sklearn_internal  # pylint: disable=no-name-in-module
+from scikeras import wrappers as keras_sklearn_external  # pylint: disable=no-name-in-module
+from scikeras import wrappers as keras_sklearn_internal  # pylint: disable=no-name-in-module
 
 from mlinspect.backends._backend import BackendResult
 from mlinspect.backends._sklearn_backend import SklearnBackend

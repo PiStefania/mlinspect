@@ -1939,7 +1939,7 @@ def test_keras_wrapper():
                 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
                 from tensorflow.keras.layers import Dense
                 from tensorflow.keras.models import Sequential
-                from tensorflow.python.keras.optimizer_v2.gradient_descent import SGD
+                from tensorflow.keras.optimizers.gradient_descent import SGD
                 import numpy as np
 
                 df = pd.DataFrame({'A': [0, 1, 2, 3], 'B': [0, 1, 2, 3], 'target': ['no', 'no', 'yes', 'yes']})
@@ -2073,7 +2073,7 @@ def test_keras_wrapper_score():
                 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
                 from tensorflow.keras.layers import Dense
                 from tensorflow.keras.models import Sequential
-                from tensorflow.python.keras.optimizer_v2.gradient_descent import SGD
+                from tensorflow.keras.optimizers.gradient_descent import SGD
                 import tensorflow as tf
                 import numpy as np
 

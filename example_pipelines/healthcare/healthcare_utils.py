@@ -6,8 +6,8 @@ from sklearn.exceptions import NotFittedError
 from gensim.sklearn_api import W2VTransformer
 from tensorflow.keras.layers import Dense  # pylint: disable=no-name-in-module
 from tensorflow.keras.models import Sequential  # pylint: disable=no-name-in-module
-from tensorflow.python.keras.optimizer_v2.gradient_descent import SGD  # pylint: disable=no-name-in-module
-from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier  # pylint: disable=no-name-in-module
+from tensorflow.keras.optimizers import SGD  # pylint: disable=no-name-in-module
+from tensorflow.keras.wrappers.scikit_learn import KerasClassifier  # pylint: disable=no-name-in-module
 
 
 class MyW2VTransformer(W2VTransformer):

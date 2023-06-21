@@ -147,7 +147,7 @@ def test_arg_capturing_sklearn_keras_classifier():
                     from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
                     from tensorflow.keras.layers import Dense
                     from tensorflow.keras.models import Sequential
-                    from tensorflow.python.keras.optimizer_v2.gradient_descent import SGD
+                    from tensorflow.keras.optimizers.gradient_descent import SGD
                     import tensorflow as tf
                     import numpy as np
     
