@@ -144,10 +144,10 @@ def test_arg_capturing_sklearn_keras_classifier():
     test_code = cleandoc("""
                     import pandas as pd
                     from sklearn.preprocessing import StandardScaler, OneHotEncoder
-                    from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
+                    from scikeras.wrappers import KerasClassifier
                     from tensorflow.keras.layers import Dense
                     from tensorflow.keras.models import Sequential
-                    from tensorflow.keras.optimizers.gradient_descent import SGD
+                    from tensorflow.keras.optimizers.experimental import SGD
                     import tensorflow as tf
                     import numpy as np
     
@@ -166,7 +166,7 @@ def test_arg_capturing_sklearn_keras_classifier():
     
                     np.random.seed(42)
                     tf.random.set_seed(42)
-                    clf = KerasClassifier(build_fn=create_model, epochs=15, batch_size=1, verbose=0, input_dim=2)
+                    clf = KerasClassifier(model=create_model, epochs=15, batch_size=1, verbose=0, input_dim=2)
                     clf = clf.fit(train, target)
     
                     test_df = pd.DataFrame({'A': [0., 0.8], 'B':  [0., 0.8], 'target': ['no', 'yes']})
@@ -183,16 +183,16 @@ def test_arg_capturing_sklearn_keras_classifier():
     expected_classifier = DagNode(7,
                                   BasicCodeLocation("<string-source>", 25),
                                   OperatorContext(OperatorType.ESTIMATOR,
-                                                  FunctionInfo('tensorflow.python.keras.wrappers.scikit_learn',
+                                                  FunctionInfo('scikeras.wrappers',
                                                                'KerasClassifier')),
                                   DagNodeDetails('Neural Network', []),
                                   OptionalCodeInfo(CodeReference(25, 6, 25, 93),
-                                                   'KerasClassifier(build_fn=create_model, epochs=15, batch_size=1, '
+                                                   'KerasClassifier(model=create_model, epochs=15, batch_size=1, '
                                                    'verbose=0, input_dim=2)'))
     expected_score = DagNode(14,
                              BasicCodeLocation("<string-source>", 30),
                              OperatorContext(OperatorType.SCORE,
-                                             FunctionInfo('tensorflow.python.keras.wrappers.scikit_learn.'
+                                             FunctionInfo('scikeras.wrappers.'
                                                           'KerasClassifier', 'score')),
                              DagNodeDetails('Neural Network', []),
                              OptionalCodeInfo(CodeReference(30, 13, 30, 56),

@@ -1931,15 +1931,15 @@ def test_logistic_regression_score():
 
 def test_keras_wrapper():
     """
-    Tests whether the monkey patching of ('tensorflow.python.keras.wrappers.scikit_learn', 'KerasClassifier') works
+    Tests whether the monkey patching of ('scikeras.wrappers', 'KerasClassifier') works
     """
     test_code = cleandoc("""
                 import pandas as pd
                 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-                from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
+                from scikeras.wrappers import KerasClassifier
                 from tensorflow.keras.layers import Dense
                 from tensorflow.keras.models import Sequential
-                from tensorflow.keras.optimizers.gradient_descent import SGD
+                from tensorflow.keras.optimizers.experimental import SGD
                 import numpy as np
 
                 df = pd.DataFrame({'A': [0, 1, 2, 3], 'B': [0, 1, 2, 3], 'target': ['no', 'no', 'yes', 'yes']})
@@ -1955,7 +1955,7 @@ def test_keras_wrapper():
                     clf.compile(loss='categorical_crossentropy', optimizer=SGD(), metrics=["accuracy"])
                     return clf
 
-                clf = KerasClassifier(build_fn=create_model, epochs=2, batch_size=1, verbose=0, input_dim=2)
+                clf = KerasClassifier(model=create_model, epochs=2, batch_size=1, verbose=0, input_dim=2)
                 clf.fit(train, target)
 
                 test_predict = clf.predict([[0., 0.], [0.6, 0.6]])
@@ -2005,31 +2005,31 @@ def test_keras_wrapper():
     expected_train_data = DagNode(5,
                                   BasicCodeLocation("<string-source>", 22),
                                   OperatorContext(OperatorType.TRAIN_DATA,
-                                                  FunctionInfo('tensorflow.python.keras.wrappers.scikit_learn',
+                                                  FunctionInfo('scikeras.wrappers',
                                                                'KerasClassifier')),
                                   DagNodeDetails(None, ['array']),
                                   OptionalCodeInfo(CodeReference(22, 6, 22, 92),
-                                                   'KerasClassifier(build_fn=create_model, epochs=2, '
+                                                   'KerasClassifier(model=create_model, epochs=2, '
                                                    'batch_size=1, verbose=0, input_dim=2)'))
     expected_dag.add_edge(expected_standard_scaler, expected_train_data)
     expected_train_labels = DagNode(6,
                                     BasicCodeLocation("<string-source>", 22),
                                     OperatorContext(OperatorType.TRAIN_LABELS,
-                                                    FunctionInfo('tensorflow.python.keras.wrappers.scikit_learn',
+                                                    FunctionInfo('scikeras.wrappers',
                                                                  'KerasClassifier')),
                                     DagNodeDetails(None, ['array']),
                                     OptionalCodeInfo(CodeReference(22, 6, 22, 92),
-                                                     'KerasClassifier(build_fn=create_model, epochs=2, '
+                                                     'KerasClassifier(model=create_model, epochs=2, '
                                                      'batch_size=1, verbose=0, input_dim=2)'))
     expected_dag.add_edge(expected_label_encode, expected_train_labels)
     expected_classifier = DagNode(7,
                                   BasicCodeLocation("<string-source>", 22),
                                   OperatorContext(OperatorType.ESTIMATOR,
-                                                  FunctionInfo('tensorflow.python.keras.wrappers.scikit_learn',
+                                                  FunctionInfo('scikeras.wrappers',
                                                                'KerasClassifier')),
                                   DagNodeDetails('Neural Network', []),
                                   OptionalCodeInfo(CodeReference(22, 6, 22, 92),
-                                                   'KerasClassifier(build_fn=create_model, epochs=2, '
+                                                   'KerasClassifier(model=create_model, epochs=2, '
                                                    'batch_size=1, verbose=0, input_dim=2)'))
     expected_dag.add_edge(expected_train_data, expected_classifier)
     expected_dag.add_edge(expected_train_labels, expected_classifier)
@@ -2064,16 +2064,16 @@ def test_keras_wrapper():
 
 def test_keras_wrapper_score():
     """
-    Tests whether the monkey patching of ('tensorflow.python.keras.wrappers.scikit_learn.KerasClassifier', 'score')
+    Tests whether the monkey patching of ('scikeras.wrappers.KerasClassifier', 'score')
      works
     """
     test_code = cleandoc("""
                 import pandas as pd
                 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-                from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
+                from scikeras.wrappers import KerasClassifier
                 from tensorflow.keras.layers import Dense
                 from tensorflow.keras.models import Sequential
-                from tensorflow.keras.optimizers.gradient_descent import SGD
+                from tensorflow.keras.optimizers.experimental import SGD
                 import tensorflow as tf
                 import numpy as np
 
@@ -2092,7 +2092,7 @@ def test_keras_wrapper_score():
 
                 np.random.seed(42)
                 tf.random.set_seed(42)
-                clf = KerasClassifier(build_fn=create_model, epochs=15, batch_size=1, verbose=0, input_dim=2)
+                clf = KerasClassifier(model=create_model, epochs=15, batch_size=1, verbose=0, input_dim=2)
                 clf = clf.fit(train, target)
 
                 test_df = pd.DataFrame({'A': [0., 0.8], 'B':  [0., 0.8], 'target': ['no', 'yes']})
@@ -2115,7 +2115,7 @@ def test_keras_wrapper_score():
     expected_test_data = DagNode(12,
                                  BasicCodeLocation("<string-source>", 30),
                                  OperatorContext(OperatorType.TEST_DATA,
-                                                 FunctionInfo('tensorflow.python.keras.wrappers.scikit_learn.'
+                                                 FunctionInfo('scikeras.wrappers.'
                                                               'KerasClassifier', 'score')),
                                  DagNodeDetails(None, ['A', 'B']),
                                  OptionalCodeInfo(CodeReference(30, 13, 30, 56),
@@ -2130,7 +2130,7 @@ def test_keras_wrapper_score():
     expected_test_labels = DagNode(13,
                                    BasicCodeLocation("<string-source>", 30),
                                    OperatorContext(OperatorType.TEST_LABELS,
-                                                   FunctionInfo('tensorflow.python.keras.wrappers.scikit_learn.'
+                                                   FunctionInfo('scikeras.wrappers.'
                                                                 'KerasClassifier', 'score')),
                                    DagNodeDetails(None, ['array']),
                                    OptionalCodeInfo(CodeReference(30, 13, 30, 56),
@@ -2139,16 +2139,16 @@ def test_keras_wrapper_score():
     expected_classifier = DagNode(7,
                                   BasicCodeLocation("<string-source>", 25),
                                   OperatorContext(OperatorType.ESTIMATOR,
-                                                  FunctionInfo('tensorflow.python.keras.wrappers.scikit_learn',
+                                                  FunctionInfo('scikeras.wrappers',
                                                                'KerasClassifier')),
                                   DagNodeDetails('Neural Network', []),
                                   OptionalCodeInfo(CodeReference(25, 6, 25, 93),
-                                                   'KerasClassifier(build_fn=create_model, epochs=15, batch_size=1, '
+                                                   'KerasClassifier(model=create_model, epochs=15, batch_size=1, '
                                                    'verbose=0, input_dim=2)'))
     expected_score = DagNode(14,
                              BasicCodeLocation("<string-source>", 30),
                              OperatorContext(OperatorType.SCORE,
-                                             FunctionInfo('tensorflow.python.keras.wrappers.scikit_learn.'
+                                             FunctionInfo('scikerass.wrappers.'
                                                           'KerasClassifier', 'score')),
                              DagNodeDetails('Neural Network', []),
                              OptionalCodeInfo(CodeReference(30, 13, 30, 56),

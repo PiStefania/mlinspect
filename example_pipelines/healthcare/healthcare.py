@@ -39,7 +39,7 @@ featurisation = ColumnTransformer(transformers=[
     ('word2vec', MyW2VTransformer(min_count=2), ['last_name']),
     ('numeric', StandardScaler(), ['num_children', 'income']),
 ], remainder='drop')
-neural_net = MyKerasClassifier(build_fn=create_model, epochs=10, batch_size=1, verbose=0)
+neural_net = MyKerasClassifier(model=create_model, epochs=10, batch_size=1, verbose=0)
 pipeline = Pipeline([
     ('features', featurisation),
     ('learner', neural_net)])

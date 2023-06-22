@@ -30,7 +30,7 @@ def test_my_keras_classifier():
     train = StandardScaler().fit_transform(pandas_df[['A', 'B']])
     target = OneHotEncoder(sparse=False).fit_transform(pandas_df[['target']])
 
-    clf = MyKerasClassifier(build_fn=create_model, epochs=2, batch_size=1, verbose=0)
+    clf = MyKerasClassifier(model=create_model, epochs=2, batch_size=1, verbose=0)
     clf.fit(train, target)
 
     test_predict = clf.predict([[0., 0.], [0.6, 0.6]])

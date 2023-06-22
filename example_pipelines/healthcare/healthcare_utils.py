@@ -6,8 +6,8 @@ from sklearn.exceptions import NotFittedError
 from gensim.sklearn_api import W2VTransformer
 from tensorflow.keras.layers import Dense  # pylint: disable=no-name-in-module
 from tensorflow.keras.models import Sequential  # pylint: disable=no-name-in-module
-from tensorflow.keras.optimizers import SGD  # pylint: disable=no-name-in-module
-from tensorflow.keras.wrappers.scikit_learn import KerasClassifier  # pylint: disable=no-name-in-module
+from tensorflow.keras.optimizers.experimental import SGD  # pylint: disable=no-name-in-module
+from scikeras.wrappers import KerasClassifier # pylint: disable=no-name-in-module
 
 
 class MyW2VTransformer(W2VTransformer):
@@ -43,7 +43,7 @@ class MyKerasClassifier(KerasClassifier):
 
     def fit(self, x, y, **kwargs):
         """Create and fit a simple neural network"""
-        self.sk_params['input_dim'] = x.shape[1]
+        kwargs['input_dim'] = x.shape[1]
         super().fit(x, y, **kwargs)
 
 
