@@ -9,7 +9,7 @@ help:
 	@echo "  recreate               to teardown and run the docker container again."
 	@echo "  test               	to run the tests. Use the 'target' arg if you want to limit the tests that will run."
 
-run: build
+run:
 	docker compose up -d --build
 
 notebook:
@@ -24,7 +24,7 @@ teardown:
 recreate: teardown run
 
 test:
-	docker compose run ${exec_args} --rm mlinspect pytest $(target)
+	docker compose run ${exec_args} --rm mlinspect pytest $(target) -x
 
 
 .PHONY: \

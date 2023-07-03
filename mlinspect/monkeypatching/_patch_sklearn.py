@@ -888,6 +888,7 @@ class SklearnFunctionTransformerPatching:
         """ Patch for ('sklearn.preprocessing_function_transformer.FunctionTransformer', 'transform') """
         # pylint: disable=no-method-argument
         original = gorilla.get_original_attribute(preprocessing.FunctionTransformer, 'transform')
+        self.mlinspect_fit_transform_active = True
         if not self.mlinspect_fit_transform_active:
             function_info = FunctionInfo('sklearn.preprocessing_function_transformer', 'FunctionTransformer')
             input_info = get_input_info(args[0], self.mlinspect_caller_filename, self.mlinspect_lineno, function_info,
@@ -1331,13 +1332,13 @@ class SklearnKerasClassifierPatching:
     """ Patches for tensorflow KerasClassifier"""
 
     # pylint: disable=too-few-public-methods
-    @gorilla.patch(keras_sklearn_internal.BaseWrapper, name='__init__', settings=gorilla.Settings(allow_hit=True))
+    @gorilla.patch(keras_sklearn_internal.KerasClassifier, name='__init__', settings=gorilla.Settings(allow_hit=True))
     def patched__init__(self, model=None, mlinspect_caller_filename=None, mlinspect_lineno=None,
                         mlinspect_optional_code_reference=None, mlinspect_optional_source_code=None,
                         mlinspect_estimator_node_id=None, **kwargs):
         """ Patch for ('scikeras.wrappers', 'KerasClassifier') """
         # pylint: disable=no-method-argument, attribute-defined-outside-init, too-many-locals, too-many-arguments
-        original = gorilla.get_original_attribute(keras_sklearn_internal.BaseWrapper, '__init__')
+        original = gorilla.get_original_attribute(keras_sklearn_internal.KerasClassifier, '__init__')
 
         self.mlinspect_caller_filename = mlinspect_caller_filename
         self.mlinspect_lineno = mlinspect_lineno

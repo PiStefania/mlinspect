@@ -6,8 +6,7 @@ from sklearn.exceptions import NotFittedError
 from gensim.sklearn_api import W2VTransformer
 from tensorflow.keras.layers import Dense  # pylint: disable=no-name-in-module
 from tensorflow.keras.models import Sequential  # pylint: disable=no-name-in-module
-from tensorflow.keras.optimizers.experimental import SGD  # pylint: disable=no-name-in-module
-from scikeras.wrappers import KerasClassifier # pylint: disable=no-name-in-module
+from keras.optimizers.optimizer_v2.gradient_descent import SGD  # pylint: disable=no-name-in-module
 
 
 class MyW2VTransformer(W2VTransformer):
@@ -38,20 +37,20 @@ class MyW2VTransformer(W2VTransformer):
         return numpy.reshape(numpy.array(vectors), (len(words), self.size))
 
 
-class MyKerasClassifier(KerasClassifier):
-    """A Keras Wrapper that sets input_dim on fit"""
+def create_model():
+    """Create a simple neural network"""
+    clf = Sequential()
+    clf.add(Dense(9, activation='relu', input_dim=109))
+    clf.add(Dense(9, activation='relu'))
+    clf.add(Dense(1, activation='sigmoid'))
+    clf.compile(loss='binary_crossentropy', optimizer=SGD(), metrics=["accuracy"])
+    return clf
 
-    def fit(self, x, y, **kwargs):
-        """Create and fit a simple neural network"""
-        kwargs['input_dim'] = x.shape[1]
-        super().fit(x, y, **kwargs)
-
-
-def create_model(input_dim=10):
+def create_model_with_input(input_dim=10):
     """Create a simple neural network"""
     clf = Sequential()
     clf.add(Dense(9, activation='relu', input_dim=input_dim))
     clf.add(Dense(9, activation='relu'))
-    clf.add(Dense(2, activation='softmax'))
-    clf.compile(loss='categorical_crossentropy', optimizer=SGD(), metrics=["accuracy"])
+    clf.add(Dense(1, activation='sigmoid'))
+    clf.compile(loss='binary_crossentropy', optimizer=SGD(), metrics=["accuracy"])
     return clf
