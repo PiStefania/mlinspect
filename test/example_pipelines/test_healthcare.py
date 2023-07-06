@@ -35,7 +35,7 @@ def test_my_keras_classifier():
     clf.fit(train, target)
 
     test_predict = clf.predict([[0., 0.], [0.6, 0.6]])
-    assert test_predict.shape == (2,)
+    assert test_predict.shape == (2, 2)
 
 
 def test_py_pipeline_runs():

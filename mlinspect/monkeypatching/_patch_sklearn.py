@@ -159,8 +159,8 @@ class SklearnGridSearchCVPatching:
         def execute_inspections(_, caller_filename, lineno, optional_code_reference, optional_source_code):
             """ Execute inspections, add DAG node """
             # pylint: disable=attribute-defined-outside-init
-            original(self, estimator, param_grid, scoring=scoring, n_jobs=n_jobs,
-                     iid=iid, refit=refit, cv=cv, verbose=verbose, pre_dispatch=pre_dispatch,
+            original(self, estimator, param_grid, scoring=scoring, n_jobs=n_jobs, refit=refit, cv=cv,
+                     verbose=verbose, pre_dispatch=pre_dispatch,
                      error_score=error_score, return_train_score=return_train_score)
 
             self.mlinspect_filename = caller_filename
@@ -821,7 +821,7 @@ class SklearnFunctionTransformerPatching:
     def patched__init__(self, func=None, inverse_func=None, *, validate=False, accept_sparse=False, check_inverse=True,
                         kw_args=None, inv_kw_args=None, mlinspect_caller_filename=None, mlinspect_lineno=None,
                         mlinspect_optional_code_reference=None, mlinspect_optional_source_code=None,
-                        mlinspect_fit_transform_active=False):
+                        mlinspect_fit_transform_active=True):
         """ Patch for ('sklearn.preprocessing_function_transformer', 'FunctionTransformer') """
         # pylint: disable=no-method-argument, attribute-defined-outside-init
         original = gorilla.get_original_attribute(preprocessing.FunctionTransformer, '__init__')
@@ -888,7 +888,6 @@ class SklearnFunctionTransformerPatching:
         """ Patch for ('sklearn.preprocessing_function_transformer.FunctionTransformer', 'transform') """
         # pylint: disable=no-method-argument
         original = gorilla.get_original_attribute(preprocessing.FunctionTransformer, 'transform')
-        self.mlinspect_fit_transform_active = True
         if not self.mlinspect_fit_transform_active:
             function_info = FunctionInfo('sklearn.preprocessing_function_transformer', 'FunctionTransformer')
             input_info = get_input_info(args[0], self.mlinspect_caller_filename, self.mlinspect_lineno, function_info,
