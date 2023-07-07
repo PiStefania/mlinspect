@@ -114,17 +114,14 @@ pydot = "*"
 
 [[package]]
 name = "astpretty"
-version = "2.0.0"
+version = "3.0.0"
 description = "Pretty print the output of python stdlib `ast.parse`."
 optional = false
-python-versions = ">=3.6.1"
+python-versions = ">=3.8"
 files = [
-    {file = "astpretty-2.0.0-py2.py3-none-any.whl", hash = "sha256:7f27633ed885033da8b58666e7079ffff7e8e01869ec1aa66484cb5185ea3aa4"},
-    {file = "astpretty-2.0.0.tar.gz", hash = "sha256:e4724bfd753636ba4a84384702e9796e5356969f40af2596d846ce64addde086"},
+    {file = "astpretty-3.0.0-py2.py3-none-any.whl", hash = "sha256:15bfd47593667169485a1fa7938b8de9445b11057d6f2b6e214b2f70667f94b6"},
+    {file = "astpretty-3.0.0.tar.gz", hash = "sha256:b08c95f32e5994454ea99882ff3c4a0afc8254c38998a0ed4b479dba448dc581"},
 ]
-
-[package.extras]
-typed = ["typed-ast"]
 
 [[package]]
 name = "astroid"
@@ -3644,4 +3641,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "076b08bde6f3bbbf822295cdf0238fbc7d31136c987f84d3a92837311e3b5e90"
+content-hash = "174d2efe4c15c2e975f26310f51254ba47c89c96f6117e800036385421e9eb1d"
