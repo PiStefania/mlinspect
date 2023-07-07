@@ -30,7 +30,7 @@ testfixtures = "6.17.1"
 matplotlib = "3.7.2"
 gorilla = "0.4.0"
 astunparse = "1.6.3"
-setuptools = "57.0.0"
+setuptools = "68.0.0"
 scipy = "1.8.0"
 statsmodels = "0.14.0"
 
