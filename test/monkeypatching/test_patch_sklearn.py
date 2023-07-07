@@ -2171,7 +2171,7 @@ def test_keras_wrapper_score():
 
     inspection_results_data_source = inspector_result.dag_node_to_inspection_results[expected_score]
     lineage_output = inspection_results_data_source[RowLineage(3)]
-    expected_lineage_df = DataFrame([[numpy.array([0, 1]), {LineageId(8, 0)}],
+    expected_lineage_df = DataFrame([[numpy.array([1, 0]), {LineageId(8, 0)}],
                                      [numpy.array([0, 1]), {LineageId(8, 1)}]],
                                     columns=['array', 'mlinspect_lineage'])
     pandas.testing.assert_frame_equal(lineage_output.reset_index(drop=True), expected_lineage_df.reset_index(drop=True),
