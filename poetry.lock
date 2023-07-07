@@ -2517,18 +2517,18 @@ toml = ">=0.7.1"
 
 [[package]]
 name = "pytest-runner"
-version = "5.2"
+version = "6.0.0"
 description = "Invoke py.test as distutils command with dependency resolution"
 optional = false
-python-versions = ">=2.7"
+python-versions = ">=3.7"
 files = [
-    {file = "pytest-runner-5.2.tar.gz", hash = "sha256:96c7e73ead7b93e388c5d614770d2bae6526efd997757d3543fe17b557a0942b"},
-    {file = "pytest_runner-5.2-py2.py3-none-any.whl", hash = "sha256:5534b08b133ef9a5e2c22c7886a8f8508c95bb0b0bdc6cc13214f269c3c70d51"},
+    {file = "pytest-runner-6.0.0.tar.gz", hash = "sha256:b4d85362ed29b4c348678de797df438f0f0509497ddb8c647096c02a6d87b685"},
+    {file = "pytest_runner-6.0.0-py3-none-any.whl", hash = "sha256:4c059cf11cf4306e369c0f8f703d1eaf8f32fad370f41deb5f007044656aca6b"},
 ]
 
 [package.extras]
-docs = ["jaraco.packaging (>=3.2)", "rst.linker (>=1.9)", "sphinx"]
-testing = ["pytest (>=3.5,!=3.7.3)", "pytest-black-multipy", "pytest-checkdocs", "pytest-cov", "pytest-flake8", "pytest-virtualenv"]
+docs = ["jaraco.packaging (>=9)", "jaraco.tidelift (>=1.4)", "rst.linker (>=1.9)", "sphinx"]
+testing = ["pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=1.0.1)", "pytest-flake8", "pytest-mypy (>=0.9.1)", "pytest-virtualenv", "types-setuptools"]
 
 [[package]]
 name = "python-dateutil"
@@ -3507,4 +3507,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "6bd2d56ab53c0fc9a9bd1279cd13f906180fdda806a8f39b3390bbd9befaf439"
+content-hash = "34cfb589957b4f645d311b4ddc9957b1ae910c6e5be147e356ba134335e7c6b1"
