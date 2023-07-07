@@ -2645,13 +2645,13 @@ pytest = ">=2.3"
 
 [[package]]
 name = "pytest-pylint"
-version = "0.17.0"
+version = "0.19.0"
 description = "pytest plugin to check source code with pylint"
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.7"
 files = [
-    {file = "pytest-pylint-0.17.0.tar.gz", hash = "sha256:b0c177d63f6e3f5b82fa2720a6570dd2ecff1616c26ed6d02d0cbf75fd98ddf9"},
-    {file = "pytest_pylint-0.17.0-py3-none-any.whl", hash = "sha256:c6a1b9ad7dc819ea56ebd45fc1f5a611f0848b9a5b85fdcd8deafd07b22e7f2e"},
+    {file = "pytest-pylint-0.19.0.tar.gz", hash = "sha256:d88e83c1023c641548a9ec3567707ceee7616632a986af133426d4a74d066932"},
+    {file = "pytest_pylint-0.19.0-py3-none-any.whl", hash = "sha256:b51d3f93bed9c192e2b046f16520981bee5abe7bd61b070306e7ee685219fdd3"},
 ]
 
 [package.dependencies]
@@ -3652,4 +3652,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "0f980a492df7e74b24957ed229c16605c1f715275f259d998bc86f6101a28aec"
+content-hash = "df175a00b1f76ab8f8934e33d5697da37810385248eddf7c80df3e77b5922929"
