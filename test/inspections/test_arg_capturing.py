@@ -491,7 +491,7 @@ def test_arg_capturing_function_transformer():
                     import numpy as np
                     
                     def safe_log(x):
-                        return np.log(x, out=np.zeros_like(x), where=(x!=0))
+                        return np.log(x, where=(x!=0))
     
                     df = pd.DataFrame({'A': [1, 2, 10, 5]})
                     function_transformer = FunctionTransformer(lambda x: safe_log(x))
