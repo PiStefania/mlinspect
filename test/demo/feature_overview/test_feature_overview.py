@@ -17,4 +17,4 @@ def test_demo_nb():
     Tests whether the demo notebook works
     """
     matplotlib.use("template")  # Disable plt.show when executing nb as part of this test
-    Notebook.load(DEMO_NB_FILE)
+    Notebook().load_file(DEMO_NB_FILE)

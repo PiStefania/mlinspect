@@ -16,4 +16,4 @@ def test_experiment_nb():
     Tests whether the experiment notebook works
     """
     matplotlib.use("template")  # Disable plt.show when executing nb as part of this test
-    Notebook.load(EXPERIMENT_NB_FILE)
+    Notebook.load_file(EXPERIMENT_NB_FILE)
