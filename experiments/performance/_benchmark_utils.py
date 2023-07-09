@@ -466,7 +466,7 @@ def get_adult_simple_py_str():
     """
     Get the code str for the adult_easy pipeline
     """
-    with open(ADULT_SIMPLE_PY) as file:
+    with open(ADULT_SIMPLE_PY, encoding="utf-8") as file:
         test_code = file.read()
     return test_code
 
@@ -475,7 +475,7 @@ def get_adult_complex_py_str():
     """
     Get the code str for the adult_easy pipeline
     """
-    with open(ADULT_COMPLEX_PY) as file:
+    with open(ADULT_COMPLEX_PY, encoding="utf-8") as file:
         test_code = file.read()
     return test_code
 
@@ -484,7 +484,7 @@ def get_compas_py_str():
     """
     Get the code str for the adult_easy pipeline
     """
-    with open(COMPAS_PY) as file:
+    with open(COMPAS_PY, encoding="utf-8") as file:
         test_code = file.read()
     return test_code
 
@@ -493,6 +493,6 @@ def get_healthcare_py_str():
     """
     Get the code str for the adult_easy pipeline
     """
-    with open(HEALTHCARE_PY) as file:
+    with open(HEALTHCARE_PY, encoding="utf-8") as file:
         test_code = file.read()
     return test_code

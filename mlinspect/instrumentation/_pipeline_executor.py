@@ -168,11 +168,11 @@ class PipelineExecutor:
         sources = [notebook_path, python_path, python_code]
         assert sum(source is not None for source in sources) == 1
         if python_path is not None:
-            with open(python_path) as file:
+            with open(python_path, encoding="utf-8") as file:
                 source_code = file.read()
             source_code_path = python_path
         elif notebook_path is not None:
-            with open(notebook_path) as file:
+            with open(notebook_path, encoding="utf-8") as file:
                 notebook = nbformat.reads(file.read(), nbformat.NO_CONVERT)
                 exporter = PythonExporter()
                 source_code, _ = exporter.from_notebook_node(notebook)
