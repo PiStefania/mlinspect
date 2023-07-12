@@ -46,5 +46,5 @@ pipeline = Pipeline([
     ('features', featurisation),
     ('learner', neural_net)])
 
-model = pipeline.fit(train_data, train_data['label'])
-print("Mean accuracy: {}".format(model.score(test_data, test_data['label'])))
+pipeline.fit(train_data, train_data['label'])
+print("Mean accuracy: {}".format(pipeline.score(test_data, test_data['label'])))
