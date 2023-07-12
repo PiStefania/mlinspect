@@ -66,7 +66,7 @@ class NoIllegalFeatures(Check):
         check the parents of the current dag node.
         """
         columns = current_node.details.columns
-        if columns is not None and columns != ["array"]:
+        if columns is not None and "array" not in columns:
             result = columns
         else:
             parent_columns = []

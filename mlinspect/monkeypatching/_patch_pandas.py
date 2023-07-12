@@ -5,6 +5,7 @@ import copy
 import os
 
 import gorilla
+import numpy as np
 import pandas
 
 from mlinspect import OperatorType, DagNode, BasicCodeLocation, DagNodeDetails
@@ -394,6 +395,9 @@ class LocIndexerPatching:
                     and isinstance(args[0][1], list) and isinstance(args[0][1][0], str):
                 # Projection to one or multiple columns, return value is df
                 columns = args[0][1]
+            elif isinstance(args[0], tuple) and not args[0][0].start and not args[0][0].stop \
+                    and isinstance(args[0][1], np.ndarray) and isinstance(args[0][1][0], str):
+                columns = args[0][1].tolist()
             elif isinstance(args[0], tuple) and not args[0][0].start and not args[0][0].stop \
                     and isinstance(args[0][1], str):
                 # Projection to one column with str syntax, e.g., for HashingVectorizer
