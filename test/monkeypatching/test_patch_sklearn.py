@@ -1401,7 +1401,7 @@ def test_sgd_classifier():
                 train = StandardScaler().fit_transform(df[['A', 'B']])
                 target = label_binarize(df['target'], classes=['no', 'yes'])
 
-                clf = SGDClassifier(loss='log', random_state=42)
+                clf = SGDClassifier(loss='log_loss', random_state=42)
                 clf = clf.fit(train, target)
 
                 test_predict = clf.predict([[0., 0.], [0.6, 0.6]])
@@ -1426,8 +1426,8 @@ def test_sgd_classifier():
                                                   FunctionInfo('sklearn.linear_model._stochastic_gradient',
                                                                'SGDClassifier')),
                                   DagNodeDetails(None, ['array']),
-                                  OptionalCodeInfo(CodeReference(11, 6, 11, 48),
-                                                   "SGDClassifier(loss='log', random_state=42)"))
+                                  OptionalCodeInfo(CodeReference(11, 6, 11, 53),
+                                                   "SGDClassifier(loss='log_loss', random_state=42)"))
     expected_dag.add_edge(expected_standard_scaler, expected_train_data)
     expected_label_encode = DagNode(4,
                                     BasicCodeLocation("<string-source>", 9),
@@ -1442,8 +1442,8 @@ def test_sgd_classifier():
                                                     FunctionInfo('sklearn.linear_model._stochastic_gradient',
                                                                  'SGDClassifier')),
                                     DagNodeDetails(None, ['array']),
-                                    OptionalCodeInfo(CodeReference(11, 6, 11, 48),
-                                                     "SGDClassifier(loss='log', random_state=42)"))
+                                    OptionalCodeInfo(CodeReference(11, 6, 11, 53),
+                                                     "SGDClassifier(loss='log_loss', random_state=42)"))
     expected_dag.add_edge(expected_label_encode, expected_train_labels)
     expected_classifier = DagNode(7,
                                   BasicCodeLocation("<string-source>", 11),
@@ -1451,8 +1451,8 @@ def test_sgd_classifier():
                                                   FunctionInfo('sklearn.linear_model._stochastic_gradient',
                                                                'SGDClassifier')),
                                   DagNodeDetails('SGD Classifier', []),
-                                  OptionalCodeInfo(CodeReference(11, 6, 11, 48),
-                                                   "SGDClassifier(loss='log', random_state=42)"))
+                                  OptionalCodeInfo(CodeReference(11, 6, 11, 53),
+                                                   "SGDClassifier(loss='log_loss', random_state=42)"))
     expected_dag.add_edge(expected_train_data, expected_classifier)
     expected_dag.add_edge(expected_train_labels, expected_classifier)
 
@@ -1504,7 +1504,7 @@ def test_grid_search_cv_sgd_classifier():
                 param_grid = {
                     'penalty': ['l2', 'l1'],
                 }
-                clf = GridSearchCV(SGDClassifier(loss='log', random_state=42), param_grid, cv=3)
+                clf = GridSearchCV(SGDClassifier(loss='log_loss', random_state=42), param_grid, cv=3)
                 clf = clf.fit(train, target)
                 
                 test_predict = clf.predict([[0., 0.], [0.6, 0.6]])
@@ -1530,8 +1530,8 @@ def test_grid_search_cv_sgd_classifier():
                                                   FunctionInfo('sklearn.linear_model._stochastic_gradient',
                                                                'SGDClassifier')),
                                   DagNodeDetails(None, ['array']),
-                                  OptionalCodeInfo(CodeReference(16, 19, 16, 61),
-                                                   "SGDClassifier(loss='log', random_state=42)"))
+                                  OptionalCodeInfo(CodeReference(16, 19, 16, 66),
+                                                   "SGDClassifier(loss='log_loss', random_state=42)"))
     expected_dag.add_edge(expected_standard_scaler, expected_train_data)
     expected_label_encode = DagNode(4,
                                     BasicCodeLocation("<string-source>", 11),
@@ -1546,8 +1546,8 @@ def test_grid_search_cv_sgd_classifier():
                                                     FunctionInfo('sklearn.linear_model._stochastic_gradient',
                                                                  'SGDClassifier')),
                                     DagNodeDetails(None, ['array']),
-                                    OptionalCodeInfo(CodeReference(16, 19, 16, 61),
-                                                     "SGDClassifier(loss='log', random_state=42)"))
+                                    OptionalCodeInfo(CodeReference(16, 19, 16, 66),
+                                                     "SGDClassifier(loss='log_loss', random_state=42)"))
     expected_dag.add_edge(expected_label_encode, expected_train_labels)
     expected_classifier = DagNode(7,
                                   BasicCodeLocation("<string-source>", 16),
@@ -1555,8 +1555,8 @@ def test_grid_search_cv_sgd_classifier():
                                                   FunctionInfo('sklearn.linear_model._stochastic_gradient',
                                                                'SGDClassifier')),
                                   DagNodeDetails('SGD Classifier', []),
-                                  OptionalCodeInfo(CodeReference(16, 19, 16, 61),
-                                                   "SGDClassifier(loss='log', random_state=42)"))
+                                  OptionalCodeInfo(CodeReference(16, 19, 16, 66),
+                                                   "SGDClassifier(loss='log_loss', random_state=42)"))
     expected_dag.add_edge(expected_train_data, expected_classifier)
     expected_dag.add_edge(expected_train_labels, expected_classifier)
 
@@ -1618,7 +1618,7 @@ def test_sgd_classifier_score():
                 train = StandardScaler().fit_transform(df[['A', 'B']])
                 target = label_binarize(df['target'], classes=['no', 'yes'])
 
-                clf = SGDClassifier(loss='log', random_state=42)
+                clf = SGDClassifier(loss='log_loss', random_state=42)
                 clf = clf.fit(train, target)
 
                 test_df = pd.DataFrame({'A': [0., 0.6], 'B':  [0., 0.6], 'target': ['no', 'yes']})
@@ -1669,8 +1669,8 @@ def test_sgd_classifier_score():
                                                   FunctionInfo('sklearn.linear_model._stochastic_gradient',
                                                                'SGDClassifier')),
                                   DagNodeDetails('SGD Classifier', []),
-                                  OptionalCodeInfo(CodeReference(11, 6, 11, 48),
-                                                   "SGDClassifier(loss='log', random_state=42)"))
+                                  OptionalCodeInfo(CodeReference(11, 6, 11, 53),
+                                                   "SGDClassifier(loss='log_loss', random_state=42)"))
     expected_score = DagNode(14,
                              BasicCodeLocation("<string-source>", 16),
                              OperatorContext(OperatorType.SCORE,

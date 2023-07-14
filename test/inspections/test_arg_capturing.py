@@ -88,7 +88,7 @@ def test_arg_capturing_sklearn_sgd_classifier():
                 train = StandardScaler().fit_transform(df[['A', 'B']])
                 target = label_binarize(df['target'], classes=['no', 'yes'])
 
-                clf = SGDClassifier(loss='log', random_state=42)
+                clf = SGDClassifier(loss='log_loss', random_state=42)
                 clf = clf.fit(train, target)
 
                 test_df = pd.DataFrame({'A': [0., 0.6], 'B':  [0., 0.6], 'target': ['no', 'yes']})
@@ -108,8 +108,8 @@ def test_arg_capturing_sklearn_sgd_classifier():
                                                   FunctionInfo('sklearn.linear_model._stochastic_gradient',
                                                                'SGDClassifier')),
                                   DagNodeDetails('SGD Classifier', []),
-                                  OptionalCodeInfo(CodeReference(11, 6, 11, 48),
-                                                   "SGDClassifier(loss='log', random_state=42)"))
+                                  OptionalCodeInfo(CodeReference(11, 6, 11, 53),
+                                                   "SGDClassifier(loss='log_loss', random_state=42)"))
     expected_score = DagNode(14,
                              BasicCodeLocation("<string-source>", 16),
                              OperatorContext(OperatorType.SCORE,
@@ -122,7 +122,7 @@ def test_arg_capturing_sklearn_sgd_classifier():
     compare(classifier_node, expected_classifier)
     compare(score_node, expected_score)
 
-    expected_args = {'loss': 'log', 'penalty': 'l2', 'alpha': 0.0001, 'l1_ratio': 0.15, 'fit_intercept': True,
+    expected_args = {'loss': 'log_loss', 'penalty': 'l2', 'alpha': 0.0001, 'l1_ratio': 0.15, 'fit_intercept': True,
                      'max_iter': 1000, 'tol': 0.001, 'shuffle': True, 'verbose': 0, 'epsilon': 0.1, 'n_jobs': None,
                      'random_state': 42, 'learning_rate': 'optimal', 'eta0': 0.0, 'power_t': 0.5,
                      'early_stopping': False, 'validation_fraction': 0.1, 'n_iter_no_change': 5, 'class_weight': None,

@@ -149,7 +149,7 @@ class SklearnGridSearchCVPatching:
     @gorilla.name('__init__')
     @gorilla.settings(allow_hit=True)
     def patched__init__(self, estimator, param_grid, *, scoring=None,
-                        n_jobs=None, iid='deprecated', refit=True, cv=None,
+                        n_jobs=None, refit=True, cv=None,
                         verbose=0, pre_dispatch='2*n_jobs',
                         error_score=numpy.nan, return_train_score=False):
         """ Patch for ('sklearn.compose.model_selection._search', 'GridSearchCV') """
