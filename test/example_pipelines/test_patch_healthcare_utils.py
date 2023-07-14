@@ -28,7 +28,7 @@ def test_my_word_to_vec_transformer():
                 import numpy as np
 
                 df = pd.DataFrame({'A': ['cat_a', 'cat_b', 'cat_a', 'cat_c']})
-                word_to_vec = MyW2VTransformer(min_count=2, size=2, workers=1)
+                word_to_vec = MyW2VTransformer(min_count=2, vector_size=2, workers=1)
                 encoded_data = word_to_vec.fit_transform(df)
                 assert encoded_data.shape == (4, 2)
                 test_df = pd.DataFrame({'A': ['cat_a', 'cat_b', 'cat_a', 'cat_c']})
@@ -52,8 +52,8 @@ def test_my_word_to_vec_transformer():
                                                  FunctionInfo('example_pipelines.healthcare.healthcare_utils',
                                                               'MyW2VTransformer')),
                                  DagNodeDetails('Word2Vec: fit_transform', ['array']),
-                                 OptionalCodeInfo(CodeReference(6, 14, 6, 62),
-                                                  'MyW2VTransformer(min_count=2, size=2, workers=1)'))
+                                 OptionalCodeInfo(CodeReference(6, 14, 6, 69),
+                                                  'MyW2VTransformer(min_count=2, vector_size=2, workers=1)'))
     expected_dag.add_edge(expected_data_source, expected_estimator)
     expected_data_source_two = DagNode(2,
                                        BasicCodeLocation("<string-source>", 9),
@@ -68,8 +68,8 @@ def test_my_word_to_vec_transformer():
                                                      FunctionInfo('example_pipelines.healthcare.healthcare_utils',
                                                                   'MyW2VTransformer')),
                                      DagNodeDetails('Word2Vec: transform', ['array']),
-                                     OptionalCodeInfo(CodeReference(6, 14, 6, 62),
-                                                      'MyW2VTransformer(min_count=2, size=2, workers=1)'))
+                                     OptionalCodeInfo(CodeReference(6, 14, 6, 69),
+                                                      'MyW2VTransformer(min_count=2, vector_size=2, workers=1)'))
     expected_dag.add_edge(expected_data_source_two, expected_estimator_two)
     compare(networkx.to_dict_of_dicts(inspector_result.dag), networkx.to_dict_of_dicts(expected_dag))
 
@@ -102,7 +102,7 @@ def test_arg_capturing_my_word_to_vec_transformer():
                     import numpy as np
     
                     df = pd.DataFrame({'A': ['cat_a', 'cat_b', 'cat_a', 'cat_c']})
-                    word_to_vec = MyW2VTransformer(min_count=2, size=2, workers=1)
+                    word_to_vec = MyW2VTransformer(min_count=2, vector_size=2, workers=1)
                     encoded_data = word_to_vec.fit_transform(df)
                     assert encoded_data.shape == (4, 2)
                     test_df = pd.DataFrame({'A': ['cat_a', 'cat_b', 'cat_a', 'cat_c']})
@@ -121,23 +121,23 @@ def test_arg_capturing_my_word_to_vec_transformer():
                                                      FunctionInfo('example_pipelines.healthcare.healthcare_utils',
                                                                   'MyW2VTransformer')),
                                      DagNodeDetails('Word2Vec: fit_transform', ['array']),
-                                     OptionalCodeInfo(CodeReference(6, 14, 6, 62),
-                                                      'MyW2VTransformer(min_count=2, size=2, workers=1)'))
+                                     OptionalCodeInfo(CodeReference(6, 14, 6, 69),
+                                                      'MyW2VTransformer(min_count=2, vector_size=2, workers=1)'))
     expected_transform = DagNode(3,
                                  BasicCodeLocation("<string-source>", 6),
                                  OperatorContext(OperatorType.TRANSFORMER,
                                                  FunctionInfo('example_pipelines.healthcare.healthcare_utils',
                                                               'MyW2VTransformer')),
                                  DagNodeDetails('Word2Vec: transform', ['array']),
-                                 OptionalCodeInfo(CodeReference(6, 14, 6, 62),
-                                                  'MyW2VTransformer(min_count=2, size=2, workers=1)'))
+                                 OptionalCodeInfo(CodeReference(6, 14, 6, 69),
+                                                  'MyW2VTransformer(min_count=2, vector_size=2, workers=1)'))
 
     compare(fit_transform_node, expected_fit_transform)
     compare(transform_node, expected_transform)
 
-    expected_args = {'size': 2, 'alpha': 0.025, 'window': 5, 'min_count': 2, 'max_vocab_size': None, 'sample': 0.001,
+    expected_args = {'vector_size': 2, 'alpha': 0.025, 'window': 5, 'min_count': 2, 'max_vocab_size': None, 'sample': 0.001,
                      'seed': 1, 'workers': 1, 'min_alpha': 0.0001, 'sg': 0, 'hs': 0, 'negative': 5, 'cbow_mean': 1,
-                     'iter': 5, 'null_word': 0, 'trim_rule': None, 'sorted_vocab': 1, 'batch_words': 10000}
+                     'epochs': 5, 'null_word': 0, 'trim_rule': None, 'sorted_vocab': 1, 'batch_words': 10000}
 
     inspection_results_tree = inspector_result.dag_node_to_inspection_results[expected_fit_transform]
     captured_args = inspection_results_tree[ArgumentCapturing()]

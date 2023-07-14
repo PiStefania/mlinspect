@@ -2,7 +2,6 @@
 Monkey patching for healthcare_utils
 """
 import gorilla
-from gensim import sklearn_api
 
 from example_pipelines.healthcare import healthcare_utils
 from mlinspect.backends._sklearn_backend import SklearnBackend
@@ -19,9 +18,9 @@ class SklearnMyW2VTransformerPatching:
 
     # pylint: disable=too-few-public-methods
 
-    @gorilla.patch(sklearn_api.W2VTransformer, name='__init__', settings=gorilla.Settings(allow_hit=True))
-    def patched__init__(self, *, size=100, alpha=0.025, window=5, min_count=5, max_vocab_size=None, sample=1e-3, seed=1,
-                        workers=3, min_alpha=0.0001, sg=0, hs=0, negative=5, cbow_mean=1, hashfxn=hash, iter=5,
+    @gorilla.patch(healthcare_utils.W2VTransformer, name='__init__', settings=gorilla.Settings(allow_hit=True))
+    def patched__init__(self, *, vector_size=100, alpha=0.025, window=5, min_count=5, max_vocab_size=None, sample=1e-3, seed=1,
+                        workers=3, min_alpha=0.0001, sg=0, hs=0, negative=5, cbow_mean=1, hashfxn=hash, epochs=5,
                         null_word=0, trim_rule=None, sorted_vocab=1, batch_words=10000,
                         mlinspect_caller_filename=None, mlinspect_lineno=None,
                         mlinspect_optional_code_reference=None, mlinspect_optional_source_code=None,
@@ -29,7 +28,7 @@ class SklearnMyW2VTransformerPatching:
         """ Patch for ('example_pipelines.healthcare.healthcare_utils', 'MyW2VTransformer') """
         # pylint: disable=no-method-argument, attribute-defined-outside-init, too-many-locals, redefined-builtin,
         # pylint: disable=invalid-name
-        original = gorilla.get_original_attribute(sklearn_api.W2VTransformer, '__init__')
+        original = gorilla.get_original_attribute(healthcare_utils.W2VTransformer, '__init__')
 
         self.mlinspect_caller_filename = mlinspect_caller_filename
         self.mlinspect_lineno = mlinspect_lineno
@@ -37,10 +36,10 @@ class SklearnMyW2VTransformerPatching:
         self.mlinspect_optional_source_code = mlinspect_optional_source_code
         self.mlinspect_fit_transform_active = mlinspect_fit_transform_active
 
-        self.mlinspect_non_data_func_args = {'size': size, 'alpha': alpha, 'window': window,
+        self.mlinspect_non_data_func_args = {'vector_size': vector_size, 'alpha': alpha, 'window': window,
                                              'min_count': min_count, 'max_vocab_size': max_vocab_size, 'sample': sample,
                                              'seed': seed, 'workers': workers, 'min_alpha': min_alpha, 'sg': sg,
-                                             'hs': hs, 'negative': negative, 'cbow_mean': cbow_mean, 'iter': iter,
+                                             'hs': hs, 'negative': negative, 'cbow_mean': cbow_mean, 'epochs': epochs,
                                              'null_word': null_word, 'trim_rule': trim_rule,
                                              'sorted_vocab': sorted_vocab, 'batch_words': batch_words}
 

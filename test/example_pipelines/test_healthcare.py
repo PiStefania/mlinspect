@@ -17,7 +17,7 @@ def test_my_word_to_vec_transformer():
     Tests whether MyW2VTransformer works
     """
     pandas_df = pd.DataFrame({'A': ['cat_a', 'cat_b', 'cat_a', 'cat_c']})
-    word_to_vec = MyW2VTransformer(min_count=2, size=2, workers=1)
+    word_to_vec = MyW2VTransformer(min_count=2, vector_size=2, workers=1)
     encoded_data = word_to_vec.fit_transform(pandas_df)
     assert encoded_data.shape == (4, 2)
 

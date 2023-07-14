@@ -19,7 +19,7 @@ def test_missing_embeddings():
             from example_pipelines.healthcare.healthcare_utils import MyW2VTransformer
 
             df = pd.DataFrame({'A': ['cat_a', 'cat_b', 'cat_a', 'cat_c']})
-            word_to_vec = MyW2VTransformer(min_count=2, size=2, workers=1)
+            word_to_vec = MyW2VTransformer(min_count=2, vector_size=2, workers=1)
             encoded_data = word_to_vec.fit_transform(df)
             """)
 

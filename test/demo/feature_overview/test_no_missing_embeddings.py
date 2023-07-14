@@ -24,7 +24,7 @@ def test_no_missing_embeddings():
             from example_pipelines.healthcare.healthcare_utils import MyW2VTransformer
 
             df = pd.DataFrame({'A': ['cat_a', 'cat_b', 'cat_a', 'cat_c']})
-            word_to_vec = MyW2VTransformer(min_count=2, size=2, workers=1)
+            word_to_vec = MyW2VTransformer(min_count=2, vector_size=2, workers=1)
             encoded_data = word_to_vec.fit_transform(df)
             """)
 
@@ -41,7 +41,7 @@ def test_no_missing_embeddings():
                 OperatorContext(OperatorType.TRANSFORMER,
                                 FunctionInfo('example_pipelines.healthcare.healthcare_utils', 'MyW2VTransformer')),
                 DagNodeDetails('Word2Vec: fit_transform', ['array']),
-                OptionalCodeInfo(CodeReference(5, 14, 5, 62), 'MyW2VTransformer(min_count=2, size=2, workers=1)'))
+                OptionalCodeInfo(CodeReference(5, 14, 5, 69), 'MyW2VTransformer(min_count=2, vector_size=2, workers=1)'))
         : MissingEmbeddingsInfo(2, ['cat_b', 'cat_c'])}
     expected_result = NoMissingEmbeddingsResult(NoMissingEmbeddings(10), CheckStatus.FAILURE,
                                                 'Missing embeddings were found!', expected_failed_dag_node_with_result)
