@@ -31,7 +31,8 @@ def test_my_keras_classifier():
     train = StandardScaler().fit_transform(pandas_df[['A', 'B']])
     target = OneHotEncoder(sparse=False).fit_transform(pandas_df[['target']])
 
-    clf = KerasClassifier(model=create_model_with_input, epochs=2, batch_size=1, verbose=0, input_dim=train.shape[1])
+    clf = KerasClassifier(model=create_model_with_input, epochs=2, batch_size=1, verbose=0, input_dim=train.shape[1],
+                          loss='categorical_crossentropy')
     clf.fit(train, target)
 
     test_predict = clf.predict([[0., 0.], [0.6, 0.6]])

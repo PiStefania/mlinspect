@@ -1954,7 +1954,7 @@ def test_keras_wrapper():
                     clf.compile(loss='categorical_crossentropy', optimizer=SGD(), metrics=["accuracy"])
                     return clf
 
-                clf = KerasClassifier(model=create_model, epochs=2, batch_size=1, verbose=0, input_dim=2)
+                clf = KerasClassifier(model=create_model, epochs=2, batch_size=1, verbose=0, input_dim=2, loss='categorical_crossentropy') 
                 clf.fit(train, target)
 
                 test_predict = clf.predict([[0., 0.], [0.6, 0.6]])
@@ -2007,9 +2007,9 @@ def test_keras_wrapper():
                                                   FunctionInfo('scikeras.wrappers.KerasClassifier',
                                                                'fit')),
                                   DagNodeDetails(None, ['array']),
-                                  OptionalCodeInfo(CodeReference(22, 6, 22, 89),
+                                  OptionalCodeInfo(CodeReference(22, 6, 22, 122),
                                                    'KerasClassifier(model=create_model, epochs=2, '
-                                                   'batch_size=1, verbose=0, input_dim=2)'))
+                                                   'batch_size=1, verbose=0, input_dim=2, loss=\'categorical_crossentropy\')'))
     expected_dag.add_edge(expected_standard_scaler, expected_train_data)
     expected_train_labels = DagNode(6,
                                     BasicCodeLocation("<string-source>", 22),
@@ -2017,9 +2017,9 @@ def test_keras_wrapper():
                                                     FunctionInfo('scikeras.wrappers.KerasClassifier',
                                                                  'fit')),
                                     DagNodeDetails(None, ['array']),
-                                    OptionalCodeInfo(CodeReference(22, 6, 22, 89),
+                                    OptionalCodeInfo(CodeReference(22, 6, 22, 122),
                                                      'KerasClassifier(model=create_model, epochs=2, '
-                                                     'batch_size=1, verbose=0, input_dim=2)'))
+                                                     'batch_size=1, verbose=0, input_dim=2, loss=\'categorical_crossentropy\')'))
     expected_dag.add_edge(expected_label_encode, expected_train_labels)
     expected_classifier = DagNode(7,
                                   BasicCodeLocation("<string-source>", 22),
@@ -2027,9 +2027,9 @@ def test_keras_wrapper():
                                                   FunctionInfo('scikeras.wrappers.KerasClassifier',
                                                                'fit')),
                                   DagNodeDetails('Neural Network', []),
-                                  OptionalCodeInfo(CodeReference(22, 6, 22, 89),
+                                  OptionalCodeInfo(CodeReference(22, 6, 22, 122),
                                                    'KerasClassifier(model=create_model, epochs=2, '
-                                                   'batch_size=1, verbose=0, input_dim=2)'))
+                                                   'batch_size=1, verbose=0, input_dim=2, loss=\'categorical_crossentropy\')'))
     expected_dag.add_edge(expected_train_data, expected_classifier)
     expected_dag.add_edge(expected_train_labels, expected_classifier)
 
@@ -2091,7 +2091,7 @@ def test_keras_wrapper_score():
 
                 np.random.seed(42)
                 tf.random.set_seed(42)
-                clf = KerasClassifier(model=create_model, epochs=15, batch_size=1, verbose=0, input_dim=2)
+                clf = KerasClassifier(model=create_model, epochs=15, batch_size=1, verbose=0, input_dim=2, loss='categorical_crossentropy')
                 clf = clf.fit(train, target)
 
                 test_df = pd.DataFrame({'A': [0., 0.8], 'B':  [0., 0.8], 'target': ['no', 'yes']})
@@ -2138,9 +2138,9 @@ def test_keras_wrapper_score():
                                   OperatorContext(OperatorType.ESTIMATOR,
                                                   FunctionInfo('scikeras.wrappers.KerasClassifier','fit')),
                                   DagNodeDetails('Neural Network', []),
-                                  OptionalCodeInfo(CodeReference(25, 6, 25, 90),
+                                  OptionalCodeInfo(CodeReference(25, 6, 25, 123),
                                                    'KerasClassifier(model=create_model, epochs=15, batch_size=1, '
-                                                   'verbose=0, input_dim=2)'))
+                                                   'verbose=0, input_dim=2, loss=\'categorical_crossentropy\')'))
     expected_score = DagNode(14,
                              BasicCodeLocation("<string-source>", 30),
                              OperatorContext(OperatorType.SCORE,

@@ -41,7 +41,7 @@ featurisation = ColumnTransformer(transformers=[
     ('numeric', StandardScaler(), ['num_children', 'income']),
 ], remainder='drop')
 
-neural_net = KerasClassifier(model=create_model, epochs=10, batch_size=1, verbose=0)
+neural_net = KerasClassifier(model=create_model, epochs=10, batch_size=1, verbose=0, loss='categorical_crossentropy')
 pipeline = Pipeline([
     ('features', featurisation),
     ('learner', neural_net)])
