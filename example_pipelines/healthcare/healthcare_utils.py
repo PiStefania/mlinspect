@@ -9,7 +9,7 @@ from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.exceptions import NotFittedError
 from tensorflow.keras.layers import Dense  # pylint: disable=no-name-in-module
 from tensorflow.keras.models import Sequential  # pylint: disable=no-name-in-module
-from keras.optimizers.optimizer_v2.gradient_descent import SGD  # pylint: disable=no-name-in-module
+from tensorflow.keras.optimizers import SGD  # pylint: disable=no-name-in-module
 
 # copied as gensim migration guide described here: https://github.com/RaRe-Technologies/gensim/wiki/Migrating-from-Gensim-3.x-to-4
 class W2VTransformer(TransformerMixin, BaseEstimator):
