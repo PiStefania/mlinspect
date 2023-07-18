@@ -197,8 +197,8 @@ def create_model():
     clf = Sequential()
     clf.add(Dense(9, activation='relu', input_dim=109))
     clf.add(Dense(9, activation='relu'))
-    clf.add(Dense(1, activation='sigmoid'))
-    clf.compile(loss='binary_crossentropy', optimizer=SGD(), metrics=["accuracy"])
+    clf.add(Dense(1, activation='softmax'))
+    clf.compile(loss='categorical_crossentropy', optimizer=SGD(), metrics=["accuracy"])
     return clf
 
 def create_model_with_input(input_dim=10):

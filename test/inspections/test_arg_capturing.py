@@ -166,7 +166,7 @@ def test_arg_capturing_sklearn_keras_classifier():
     
                     np.random.seed(42)
                     tf.random.set_seed(42)
-                    clf = KerasClassifier(model=create_model, epochs=15, batch_size=1, verbose=0, input_dim=2)
+                    clf = KerasClassifier(model=create_model, epochs=15, batch_size=1, verbose=0, input_dim=2, loss='categorical_crossentropy')
                     clf = clf.fit(train, target)
     
                     test_df = pd.DataFrame({'A': [0., 0.8], 'B':  [0., 0.8], 'target': ['no', 'yes']})
@@ -186,9 +186,9 @@ def test_arg_capturing_sklearn_keras_classifier():
                                                   FunctionInfo('scikeras.wrappers.KerasClassifier',
                                                                'fit')),
                                   DagNodeDetails('Neural Network', []),
-                                  OptionalCodeInfo(CodeReference(25, 6, 25, 90),
+                                  OptionalCodeInfo(CodeReference(25, 6, 25, 123),
                                                    'KerasClassifier(model=create_model, epochs=15, batch_size=1, '
-                                                   'verbose=0, input_dim=2)'))
+                                                   'verbose=0, input_dim=2, loss=\'categorical_crossentropy\')'))
     expected_score = DagNode(14,
                              BasicCodeLocation("<string-source>", 30),
                              OperatorContext(OperatorType.SCORE,
@@ -200,7 +200,7 @@ def test_arg_capturing_sklearn_keras_classifier():
     compare(classifier_node, expected_classifier)
     compare(score_node, expected_score)
 
-    expected_args = {'epochs': 15, 'batch_size': 1, 'verbose': 0, 'input_dim': 2}
+    expected_args = {'epochs': 15, 'batch_size': 1, 'verbose': 0, 'input_dim': 2, 'loss': 'categorical_crossentropy'}
 
     inspection_results_tree = inspector_result.dag_node_to_inspection_results[classifier_node]
     captured_args = inspection_results_tree[ArgumentCapturing()]
