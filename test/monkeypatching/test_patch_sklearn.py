@@ -1938,7 +1938,7 @@ def test_keras_wrapper():
                 from scikeras.wrappers import KerasClassifier
                 from tensorflow.keras.layers import Dense
                 from tensorflow.keras.models import Sequential
-                from tensorflow.keras.optimizers.experimental import SGD
+                from tensorflow.keras.optimizers import SGD
                 import numpy as np
 
                 df = pd.DataFrame({'A': [0, 1, 2, 3], 'B': [0, 1, 2, 3], 'target': ['no', 'no', 'yes', 'yes']})
