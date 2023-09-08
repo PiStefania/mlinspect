@@ -44,17 +44,17 @@ impute_and_one_hot_encode = Pipeline([
 ])
 featurisation = ColumnTransformer(transformers=[
     ("impute_and_one_hot_encode", impute_and_one_hot_encode, ['smoker', 'county', 'race']),
-    ('word2vec', MyW2VTransformer(min_count=2), ['last_name']),
+    #('word2vec', MyW2VTransformer(min_count=2, vector_size=5), ['last_name']),
     ('numeric', StandardScaler(), ['num_children', 'income']),
 ], remainder='drop')
 
-neural_net = KerasClassifier(model=create_model_predict, epochs=10, batch_size=1, verbose=0, loss='binary_crossentropy', optimizer__lr=0.001,)
+neural_net = KerasClassifier(model=create_model_predict, epochs=10, batch_size=1, verbose=0, loss='binary_crossentropy',)
 X_t_train = featurisation.fit_transform(X_train, y_train)
 X_t_test = featurisation.fit_transform(X_test, y_test)
 neural_net.fit(X_t_train, y_train)
 print("Mean accuracy: {}".format(neural_net.score(X_t_test, y_test)))
 print(f"Predict first 10 samples: {neural_net.predict(X_t_test[:10])}")
 # Introduce explainability
-explainer = shap.KernelExplainer(neural_net.predict, X_t_train)
+explainer = shap.KernelExplainer(neural_net.predict, X_t_train, feature_names=featurisation.get_feature_names_out())
 shap_values = explainer.shap_values(X_t_test[:1], nsamples=100)
 shap.force_plot(explainer.expected_value, shap_values, X_t_test[:1])
