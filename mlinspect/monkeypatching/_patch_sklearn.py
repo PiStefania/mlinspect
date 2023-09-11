@@ -1423,12 +1423,11 @@ class SklearnKerasClassifierPatching:
             input_infos = SklearnBackend.before_call(operator_context, input_dfs)
 
             # This currently calls predict twice, but patching here is complex. Maybe revisit this in future work
-            predictions = self.predict(test_data_result)  # pylint: disable=no-member
             result = original(self, test_data_result, test_labels_result, *args[2:], **kwargs)
 
             estimator_backend_result = SklearnBackend.after_call(operator_context,
                                                                  input_infos,
-                                                                 predictions,
+                                                                 result,
                                                                  self.mlinspect_non_data_func_args)
 
             dag_node = DagNode(singleton.get_next_op_id(),
@@ -1445,5 +1444,53 @@ class SklearnKerasClassifierPatching:
             new_result = execute_patched_func_indirect_allowed(execute_inspections)
         else:
             original = gorilla.get_original_attribute(keras_sklearn_external.KerasClassifier, 'score')
+            new_result = original(self, *args, **kwargs)
+        return new_result
+
+    @gorilla.patch(keras_sklearn_external.KerasClassifier, name='predict', settings=gorilla.Settings(allow_hit=True))
+    def patched_predict(self, *args, **kwargs):
+        """ Patch for ('scikeras.wrappers.KerasClassifier', 'predict') """
+        # pylint: disable=no-method-argument
+        original = gorilla.get_original_attribute(keras_sklearn_external.KerasClassifier, 'predict')
+
+        def execute_inspections(_, caller_filename, lineno, optional_code_reference, optional_source_code):
+            """ Execute inspections, add DAG node """
+            # pylint: disable=too-many-locals
+            function_info = FunctionInfo('scikeras.wrappers.KerasClassifier', 'predict')
+            # Test data
+            data_backend_result, test_data_node, test_data_result = add_test_data_dag_node(args[0],
+                                                                                           function_info,
+                                                                                           lineno,
+                                                                                           optional_code_reference,
+                                                                                           optional_source_code,
+                                                                                           caller_filename)
+
+            # Score
+            operator_context = OperatorContext(OperatorType.PREDICT, function_info)
+            input_dfs = [data_backend_result.annotated_dfobject]
+            input_infos = SklearnBackend.before_call(operator_context, input_dfs)
+
+            result = original(self, test_data_result, *args[2:], **kwargs)
+            estimator_backend_result = SklearnBackend.after_call(operator_context,
+                                                                 input_infos,
+                                                                 result,
+                                                                 self.mlinspect_non_data_func_args)
+            if "score" in optional_source_code:
+                return result
+            dag_node = DagNode(singleton.get_next_op_id(),
+                               BasicCodeLocation(caller_filename, lineno),
+                               operator_context,
+                               DagNodeDetails("Neural Network", []),
+                               get_optional_code_info_or_none(optional_code_reference, optional_source_code))
+
+            estimator_dag_node = get_dag_node_for_id(self.mlinspect_estimator_node_id)
+            add_dag_node(dag_node, [estimator_dag_node, test_data_node],
+                         estimator_backend_result)
+            return result
+
+        if not call_info_singleton.param_search_active:
+            new_result = execute_patched_func_indirect_allowed(execute_inspections)
+        else:
+            original = gorilla.get_original_attribute(keras_sklearn_external.KerasClassifier, 'predict')
             new_result = original(self, *args, **kwargs)
         return new_result

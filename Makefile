@@ -9,7 +9,7 @@ help:
 	@echo "  test               	to run the tests. Use the 'target' arg if you want to limit the tests that will run."
 
 run:
-	docker compose up -d --build
+	docker compose up --build
 
 logs:
 	docker compose logs -f

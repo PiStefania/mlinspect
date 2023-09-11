@@ -61,6 +61,8 @@ def get_iterator_for_type(data, np_nditer_with_refs=False, columns=None):
         iterator = get_csr_row_iterator(data, columns)
     elif isinstance(data, list):
         iterator = get_list_row_iterator(data, columns)
+    elif isinstance(data, float):
+        iterator = get_list_row_iterator([data], columns)
     else:
         raise NotImplementedError("TODO: Support type {}!".format(type(data)))
     return iterator
@@ -88,6 +90,9 @@ def create_wrapper_with_annotations(annotations_df, return_value) -> AnnotatedDf
         new_return_value = AnnotatedDfObject(return_value, annotations_df)
     elif return_value is None:
         new_return_value = AnnotatedDfObject(None, annotations_df)
+    elif isinstance(return_value, float):
+        return_value = MlinspectNdarray(return_value)
+        new_return_value = AnnotatedDfObject(return_value, annotations_df)
     else:
         raise NotImplementedError("A type that is still unsupported was found: {}".format(return_value))
     return new_return_value

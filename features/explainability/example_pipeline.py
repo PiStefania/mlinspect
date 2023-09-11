@@ -9,7 +9,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from example_pipelines.healthcare.healthcare_utils import MyW2VTransformer, create_model_predict
+from example_pipelines.healthcare.healthcare_utils import create_model_predict
 from mlinspect.utils import get_project_root
 
 # FutureWarning: Sklearn 0.24 made a change that breaks remainder='drop', that change will be fixed
@@ -47,6 +47,7 @@ featurisation = ColumnTransformer(transformers=[
     ("impute_and_one_hot_encode", impute_and_one_hot_encode, ['smoker', 'county', 'race']),
     ('numeric', StandardScaler(), ['num_children', 'income']),
 ], remainder='drop')
+#featurisation.set_output(transform="pandas")
 
 neural_net = KerasClassifier(model=create_model_predict, epochs=10, batch_size=1, verbose=0, loss='binary_crossentropy',)
 X_t_train = featurisation.fit_transform(train_data, y_train)

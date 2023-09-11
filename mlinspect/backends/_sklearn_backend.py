@@ -74,6 +74,11 @@ class SklearnBackend(Backend):
                                                              input_infos,
                                                              return_value,
                                                              non_data_function_args)
+        elif operator_context.operator == OperatorType.PREDICT:
+            return_value = execute_inspection_visits_nary_op(operator_context,
+                                                             input_infos,
+                                                             return_value,
+                                                             non_data_function_args)
         elif operator_context.operator == OperatorType.CONCATENATION:
             return_value = execute_inspection_visits_nary_op(operator_context, input_infos, return_value,
                                                              non_data_function_args)
