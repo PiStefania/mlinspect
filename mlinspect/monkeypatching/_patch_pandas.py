@@ -460,6 +460,53 @@ class LocIndexerPatching:
         return result
 
 
+@gorilla.patches(pandas.core.indexing._iLocIndexer)  # pylint: disable=protected-access
+class ILocIndexerPatching:
+    """ Patches for 'pandas.core.frame' """
+
+    # pylint: disable=too-few-public-methods, too-many-locals
+
+    @gorilla.name('__getitem__')
+    @gorilla.settings(allow_hit=True)
+    def patched__getitem__(self, *args, **kwargs):
+        """ Patch for ('pandas.core.frame', 'Dataframe') """
+
+        original = gorilla.get_original_attribute(pandas.core.indexing._iLocIndexer, '__getitem__')
+
+        def execute_inspections(op_id, caller_filename, lineno, optional_code_reference, optional_source_code):
+            """ Execute inspections, add DAG node """
+            function_info = FunctionInfo('pandas.core.indexing._iLocIndexer', '__getitem__')
+            input_info = get_input_info(self.obj, caller_filename, lineno, function_info, optional_code_reference,
+                                        optional_source_code)
+
+            print(f"{optional_source_code=}")
+            if isinstance(self.obj, pandas.DataFrame):  # Selection
+                operator_context = OperatorContext(OperatorType.SELECTION, function_info)
+                columns = list(self.obj.columns)  # pylint: disable=no-member
+                if optional_source_code:
+                    description = "Select by Dataframe: {}".format(optional_source_code)
+                else:
+                    description = "Select by Dataframe"
+                dag_node = DagNode(op_id,
+                                   BasicCodeLocation(caller_filename, lineno),
+                                   operator_context,
+                                   DagNodeDetails(description, columns),
+                                   get_optional_code_info_or_none(optional_code_reference, optional_source_code))
+            else:
+                raise NotImplementedError()
+            input_infos = PandasBackend.before_call(operator_context, [input_info.annotated_dfobject])
+            result = original(self, *args, **kwargs)
+            backend_result = PandasBackend.after_call(operator_context,
+                                                      input_infos,
+                                                      result)
+            result = backend_result.annotated_dfobject.result_data
+            add_dag_node(dag_node, [input_info.dag_node], backend_result)
+
+            return result
+
+        return execute_patched_func(original, execute_inspections, self, *args, **kwargs)
+
+
 @gorilla.patches(pandas.Series)
 class SeriesPatching:
     """ Patches for 'pandas.core.series' """

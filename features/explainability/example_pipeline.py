@@ -47,14 +47,14 @@ featurisation = ColumnTransformer(transformers=[
     ("impute_and_one_hot_encode", impute_and_one_hot_encode, ['smoker', 'county', 'race']),
     ('numeric', StandardScaler(), ['num_children', 'income']),
 ], remainder='drop')
-#featurisation.set_output(transform="pandas")
+featurisation.set_output(transform="pandas")
 
 neural_net = KerasClassifier(model=create_model_predict, epochs=10, batch_size=1, verbose=0, loss='binary_crossentropy',)
 X_t_train = featurisation.fit_transform(train_data, y_train)
 X_t_test = featurisation.fit_transform(X_test, y_test)
 neural_net.fit(X_t_train, y_train)
 print("Mean accuracy: {}".format(neural_net.score(X_t_test, y_test)))
-print(f"Predict first 10 samples: {neural_net.predict(X_t_test[:10])}")
+print(f"Predict first 10 samples: {neural_net.predict(X_t_test.iloc[:10])}")
 # Introduce explainability
 # explainer = shap.KernelExplainer(neural_net.predict, X_t_train)
 # shap_values = explainer.shap_values(X_t_test[:1], nsamples=100)
