@@ -1458,6 +1458,8 @@ class SklearnKerasClassifierPatching:
             # pylint: disable=too-many-locals
             function_info = FunctionInfo('scikeras.wrappers.KerasClassifier', 'predict')
             # Test data
+            if "score" in optional_source_code:
+                return original(self, *args, **kwargs)
             data_backend_result, test_data_node, test_data_result = add_test_data_dag_node(args[0],
                                                                                            function_info,
                                                                                            lineno,
@@ -1475,8 +1477,6 @@ class SklearnKerasClassifierPatching:
                                                                  input_infos,
                                                                  result,
                                                                  self.mlinspect_non_data_func_args)
-            if "score" in optional_source_code:
-                return result
             dag_node = DagNode(singleton.get_next_op_id(),
                                BasicCodeLocation(caller_filename, lineno),
                                operator_context,

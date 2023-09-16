@@ -479,7 +479,6 @@ class ILocIndexerPatching:
             input_info = get_input_info(self.obj, caller_filename, lineno, function_info, optional_code_reference,
                                         optional_source_code)
 
-            print(f"{optional_source_code=}")
             if isinstance(self.obj, pandas.DataFrame):  # Selection
                 operator_context = OperatorContext(OperatorType.SELECTION, function_info)
                 columns = list(self.obj.columns)  # pylint: disable=no-member
