@@ -1,6 +1,7 @@
 """Predicting which patients are at a higher risk of complications"""
 import warnings
 import os
+
 import pandas as pd
 import shap
 from scikeras.wrappers import KerasClassifier
@@ -10,6 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from example_pipelines.healthcare.healthcare_utils import create_model_predict
+from mlinspect.monkeypatching._mlinspect_ndarray import MlinspectNdarray
 from mlinspect.utils import get_project_root
 
 # FutureWarning: Sklearn 0.24 made a change that breaks remainder='drop', that change will be fixed
@@ -47,17 +49,16 @@ featurisation = ColumnTransformer(transformers=[
     ("impute_and_one_hot_encode", impute_and_one_hot_encode, ['smoker', 'county', 'race']),
     ('numeric', StandardScaler(), ['num_children', 'income']),
 ], remainder='drop')
-featurisation.set_output(transform="pandas")
 
 neural_net = KerasClassifier(model=create_model_predict, epochs=10, batch_size=1, verbose=0, loss='binary_crossentropy',)
-X_t_train = featurisation.fit_transform(train_data, y_train)
-X_t_test = featurisation.fit_transform(X_test, y_test)
+X_t_train: MlinspectNdarray = featurisation.fit_transform(train_data, y_train)
+X_t_test: MlinspectNdarray = featurisation.fit_transform(X_test, y_test)
 neural_net.fit(X_t_train, y_train)
 print("Mean accuracy: {}".format(neural_net.score(X_t_test, y_test)))
-print(f"Predict first 10 samples: {neural_net.predict(X_t_test.iloc[:10])}")
+print(f"Predict first 10 samples: {neural_net.predict(X_t_test[:10])}")
 # Introduce explainability
-# explainer = shap.KernelExplainer(neural_net.predict, X_t_train)
-# shap_values = explainer.shap_values(X_t_test[:1], nsamples=100)
-# print(f"{featurisation.get_feature_names_out()=}")
+explainer = shap.KernelExplainer(neural_net.predict, X_t_train.__array__())
+#shap_values = explainer.shap_values(X_t_test.__array__()[:1], nsamples=100)
+#print(f"{featurisation.get_feature_names_out()=}")
 # shap.force_plot(explainer.expected_value, shap_values, X_t_test[:1], feature_names=featurisation.get_feature_names_out())
 # shap.summary_plot(shap_values, X_t_test[:1], feature_names=featurisation.get_feature_names_out(), plot_type="bar")

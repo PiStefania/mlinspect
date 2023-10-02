@@ -361,7 +361,7 @@ class SklearnStandardScalerPatching:
                                                    result,
                                                    self.mlinspect_non_data_func_args)
         new_return_value = backend_result.annotated_dfobject.result_data
-        #assert isinstance(new_return_value, MlinspectNdarray)
+        assert isinstance(new_return_value, MlinspectNdarray)
         dag_node = DagNode(singleton.get_next_op_id(),
                            BasicCodeLocation(self.mlinspect_caller_filename, self.mlinspect_lineno),
                            operator_context,
