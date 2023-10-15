@@ -56,7 +56,8 @@ class OperatorType(Enum):
     JOIN = "Join"
     GROUP_BY_AGG = "Groupby and Aggregate"
     TRAIN_TEST_SPLIT = "Train Test Split"
-    EXPLAINABILITY = "Explainability"
+    CREATE_EXPLAINER = "Create Model Explainer"
+    EXPLAINABILITY = "Explain Model"
 
 
 @dataclasses.dataclass(frozen=True)
