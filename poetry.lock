@@ -3628,13 +3628,13 @@ test = ["pre-commit", "pytest (>=7.0)", "pytest-timeout"]
 
 [[package]]
 name = "testfixtures"
-version = "7.2.0"
+version = "7.2.2"
 description = "A collection of helpers and mock objects for unit tests and doc tests."
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "testfixtures-7.2.0-py3-none-any.whl", hash = "sha256:4efe4fd0366d3f67919550c7718b5147159a238a0266420417260f685564a1ec"},
-    {file = "testfixtures-7.2.0.tar.gz", hash = "sha256:8c8c20dd30ea113548507584a1daae779248dbaa5712672c7abb9709f0fbf8b2"},
+    {file = "testfixtures-7.2.2-py3-none-any.whl", hash = "sha256:c72adaf9c7b06882b0ea379dd8159422ca2be0205eedc7c3fee0074cd32f45fa"},
+    {file = "testfixtures-7.2.2.tar.gz", hash = "sha256:80774aecb0249458275ab783f53093fbe75795ff2b3218d22ce3fff0a12c4da6"},
 ]
 
 [package.extras]
@@ -3924,4 +3924,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "9fb6411c6f9cb13457a4715a2853475b57747bebab4cac84206c5790aec7a411"
+content-hash = "c21b5af394569a0e3ce5193f8ddf4baae8301d7676612ddddaefcd8f6da7e3b8"
