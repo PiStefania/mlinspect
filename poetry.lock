@@ -1056,19 +1056,22 @@ testing = ["flake8 (<5)", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-chec
 
 [[package]]
 name = "importnb"
-version = "2023.1.7"
+version = "2023.11.1"
 description = "import jupyter notebooks as python modules and scripts."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "importnb-2023.1.7-py3-none-any.whl", hash = "sha256:e94bae816a06d78763df1bcbf3630fce45e0672e0f9d06d25047d6b24085c92b"},
-    {file = "importnb-2023.1.7.tar.gz", hash = "sha256:5aee93391b7f7ac082211061376758f3d2319b12d9e822d3367e55bc125110b7"},
+    {file = "importnb-2023.11.1-py3-none-any.whl", hash = "sha256:1a294ae2156c851a5794b49dc7b82995932f5116203ba3041de1aaf3ed3173b8"},
+    {file = "importnb-2023.11.1.tar.gz", hash = "sha256:95a745ac7299a81f776e8210e8ad77f05731dfce7bad79eb85e08ed37a2488c0"},
 ]
+
+[package.dependencies]
+importlib-metadata = {version = ">=4.8.3", markers = "python_version < \"3.10\""}
 
 [package.extras]
 docs = ["mkdocs-jupyter", "mkdocs-material", "ruamel-yaml"]
 interactive = ["ipython"]
-tasks = ["doit", "toml"]
+tasks = ["doit", "tomli"]
 
 [[package]]
 name = "iniconfig"
@@ -3900,4 +3903,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "ad0d6b5dd134cb3c4863beded43ef19aeae3704057b2175dd887b415028231ab"
+content-hash = "0b3c5bef5b6e91b2cb42e79f2f2dbb8727d76f785f7c95367cf908081835affc"
