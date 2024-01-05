@@ -63,11 +63,9 @@ class SklearnBackend(Backend):
                                                                     input_infos[0].result_annotation, return_value,
                                                                     False, non_data_function_args)
         elif operator_context.operator == OperatorType.ESTIMATOR:
-            return_value = execute_inspection_visits_sink_op(operator_context,
-                                                             input_infos[0].result_data,
-                                                             input_infos[0].result_annotation,
-                                                             input_infos[1].result_data,
-                                                             input_infos[1].result_annotation,
+            return_value = execute_inspection_visits_nary_op(operator_context,
+                                                             input_infos,
+                                                             return_value,
                                                              non_data_function_args)
         elif operator_context.operator == OperatorType.SCORE:
             return_value = execute_inspection_visits_nary_op(operator_context,

@@ -1379,10 +1379,10 @@ class SklearnKerasClassifierPatching:
             operator_context = OperatorContext(OperatorType.ESTIMATOR, function_info)
             input_dfs = [data_backend_result.annotated_dfobject, label_backend_result.annotated_dfobject]
             input_infos = SklearnBackend.before_call(operator_context, input_dfs)
-            original(self, train_data_result, train_labels_result, *args[2:], **kwargs)
+            result = original(self, train_data_result, train_labels_result, *args[2:], **kwargs)
             estimator_backend_result = SklearnBackend.after_call(operator_context,
                                                                  input_infos,
-                                                                 None,
+                                                                 result,
                                                                  self.mlinspect_non_data_func_args)
             self.mlinspect_estimator_node_id = singleton.get_next_op_id()  # pylint: disable=attribute-defined-outside-init
             dag_node = DagNode(self.mlinspect_estimator_node_id,
@@ -1463,7 +1463,7 @@ class SklearnKerasClassifierPatching:
             # pylint: disable=too-many-locals
             function_info = FunctionInfo('scikeras.wrappers.KerasClassifier', 'predict')
             # Test data
-            if "score" in optional_source_code or "shap_values" in optional_source_code:
+            if "score" in optional_source_code or "shap_values" in optional_source_code or "fit" in optional_source_code:
                 return original(self, *args, **kwargs)
             if "Explainer" in optional_source_code:
                 data_backend_result, test_data_node, test_data_result = add_test_data_dag_node(call_info_singleton_shap.actual_explainer_input,

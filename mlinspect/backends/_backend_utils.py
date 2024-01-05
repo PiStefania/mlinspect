@@ -5,6 +5,7 @@ import itertools
 
 import numpy
 from pandas import DataFrame, Series
+from scikeras.wrappers import KerasClassifier
 from scipy.sparse import csr_matrix
 
 from ._backend import AnnotatedDfObject
@@ -63,6 +64,8 @@ def get_iterator_for_type(data, np_nditer_with_refs=False, columns=None):
         iterator = get_list_row_iterator(data, columns)
     elif isinstance(data, float):
         iterator = get_list_row_iterator([data], columns)
+    elif isinstance(data, KerasClassifier):
+        iterator = get_list_row_iterator([data], columns)
     else:
         raise NotImplementedError("TODO: Support type {}!".format(type(data)))
     return iterator
@@ -91,6 +94,9 @@ def create_wrapper_with_annotations(annotations_df, return_value) -> AnnotatedDf
     elif return_value is None:
         new_return_value = AnnotatedDfObject(None, annotations_df)
     elif isinstance(return_value, float):
+        return_value = MlinspectNdarray(return_value)
+        new_return_value = AnnotatedDfObject(return_value, annotations_df)
+    elif isinstance(return_value, KerasClassifier):
         return_value = MlinspectNdarray(return_value)
         new_return_value = AnnotatedDfObject(return_value, annotations_df)
     else:
