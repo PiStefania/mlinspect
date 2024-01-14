@@ -9,7 +9,7 @@ from typing import Iterable
 import numpy as np
 
 from features.explainability.inspections.explainer import Explainer
-from features.explainability.inspections.shapley_methods_enum import ShapleyMethodsEnum
+from features.explainability.inspections.explainability_methods_enum import ExplainabilityMethodsEnum
 from mlinspect import OperatorType
 from mlinspect.checks._check import Check, CheckStatus, CheckResult
 from mlinspect.inspections._inspection import Inspection
@@ -22,7 +22,7 @@ class ShapleyValues(CheckResult):
 class ShapleyValuesCheck(Check):
     # pylint: disable=unnecessary-pass, too-few-public-methods
 
-    def __init__(self, method: ShapleyMethodsEnum, explainer_input: np.ndarray, test_input: np.ndarray, nsamples=100):
+    def __init__(self, method: ExplainabilityMethodsEnum, explainer_input: np.ndarray, test_input: np.ndarray, nsamples=100):
         self.explainer_input = explainer_input
         self.test_input = test_input
         self.nsamples = nsamples
