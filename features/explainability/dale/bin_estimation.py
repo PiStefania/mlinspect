@@ -1,5 +1,5 @@
 import numpy as np
-import feature_effect.utils as utils
+from . import utils
 
 
 class BinEstimatorDP:

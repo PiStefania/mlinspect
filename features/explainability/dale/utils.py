@@ -364,3 +364,5 @@ def compute_fe_parameters(data, data_effect, limits, min_points_per_bin):
                   "z": z,
                   "first_empty_bin": first_empty_bin}
     return parameters
+
+

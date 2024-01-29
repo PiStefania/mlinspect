@@ -1,7 +1,7 @@
 import typing
-import utils as utils
-import visualization as vis
-import bin_estimation as be
+from . import utils
+from . import visualization as vis
+from . import bin_estimation as be
 import numpy as np
 
 
