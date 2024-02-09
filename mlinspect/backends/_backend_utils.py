@@ -3,6 +3,7 @@ Some utility functions the different instrumentation backends
 """
 import itertools
 
+import lime
 import numpy
 from pandas import DataFrame, Series
 from scikeras.wrappers import KerasClassifier
@@ -97,6 +98,9 @@ def create_wrapper_with_annotations(annotations_df, return_value) -> AnnotatedDf
         return_value = MlinspectNdarray(return_value)
         new_return_value = AnnotatedDfObject(return_value, annotations_df)
     elif isinstance(return_value, KerasClassifier):
+        return_value = MlinspectNdarray(return_value)
+        new_return_value = AnnotatedDfObject(return_value, annotations_df)
+    elif isinstance(return_value, lime.explanation.Explanation):
         return_value = MlinspectNdarray(return_value)
         new_return_value = AnnotatedDfObject(return_value, annotations_df)
     else:

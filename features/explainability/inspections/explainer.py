@@ -1,7 +1,6 @@
 """
 Explainer Inspection
 """
-import random
 from typing import Iterable, List, Optional
 
 import pandas as pd

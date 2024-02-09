@@ -2,8 +2,8 @@
 import warnings
 import os
 
+import numpy as np
 import pandas as pd
-import shap
 from scikeras.wrappers import KerasClassifier
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
@@ -17,9 +17,6 @@ from mlinspect.utils import get_project_root
 # FutureWarning: Sklearn 0.24 made a change that breaks remainder='drop', that change will be fixed
 #  in an upcoming version: https://github.com/scikit-learn/scikit-learn/pull/19263
 warnings.filterwarnings('ignore')
-
-shap.initjs()
-
 
 COUNTIES_OF_INTEREST = ['county2', 'county3']
 
@@ -56,7 +53,64 @@ X_t_test: MlinspectNdarray = featurisation.fit_transform(X_test, y_test)
 neural_net.fit(X_t_train, y_train)
 print("Mean accuracy: {}".format(neural_net.score(X_t_test, y_test)))
 # Introduce explainability
-explainer = shap.KernelExplainer(neural_net.predict, X_t_train)
-shap_values = explainer.shap_values(X_t_test[:1], nsamples=100)
-#shap.force_plot(explainer.expected_value, shap_values, X_t_test[:1], feature_names=featurisation.get_feature_names_out())
-#shap.summary_plot(shap_values, X_t_test[:1], feature_names=featurisation.get_feature_names_out(), plot_type="bar")
+
+# SHAP
+# import shap
+# shap.initjs()
+# explainer = shap.KernelExplainer(neural_net.predict, X_t_train)
+# shap_values = explainer.shap_values(X_t_test[:2], nsamples=100)
+# shap.force_plot(explainer.expected_value, shap_values, X_t_test[:2], feature_names=featurisation.get_feature_names_out())
+# shap.summary_plot(shap_values, X_t_test[:1], feature_names=featurisation.get_feature_names_out(), plot_type="bar")
+
+# LIME
+import lime.lime_tabular
+explainer = lime.lime_tabular.LimeTabularExplainer(X_t_train, mode='classification',
+                                                   feature_names=featurisation.get_feature_names_out(),
+                                                   class_names=["label"])
+result = explainer.explain_instance(X_t_test[0], neural_net.predict_proba)
+result.show_in_notebook()
+
+# # PDP
+# from sklearn.inspection import PartialDependenceDisplay
+# display = PartialDependenceDisplay.from_estimator(model, self.explainer_input, features=[1,2], kind="average")
+# self._results[ExplainabilityMethodsEnum.PDP] = {"explainer": None, "results": display}
+
+# ICE
+# display = PartialDependenceDisplay.from_estimator(model, self.explainer_input, features=[1, 2],kind="individual")
+# self._results[ExplainabilityMethodsEnum.ICE] = {"explainer": None, "results": display}
+#
+# # IG
+# from alibi.explainers import IntegratedGradients
+# ig = IntegratedGradients(neural_net,
+#                          method="gausslegendre",
+#                          n_steps=50,
+#                          internal_batch_size=100)
+# explanation = ig.explain(X_t_test[:1],baselines=None,target=0)
+#
+# # ALE
+# from alibi.explainers import ALE
+# explainer = ALE(model.predict_proba, feature_names=self.features, target_names=["label"])
+# explanation = explainer.explain(self.explainer_input)
+#
+# # DALE
+# from ..dale.dale import DALE
+# import tensorflow as tf
+#
+# def model_grad(input):
+#     x_inp = tf.cast(input, tf.float32)
+#     with tf.GradientTape() as tape:
+#         tape.watch(x_inp)
+#         preds = model.model_(x_inp)
+#     grads = tape.gradient(preds, x_inp)
+#     return grads.numpy()
+# dale = DALE(data=self.test_input, model=model, model_jac=model_grad)
+# dale.fit()
+# explanations = dale.eval(x=self.explainer_input, s=0)
+#
+# # DALEX
+# import dalex as dx
+# explainer = dx.Explainer(model, self.explainer_input, self.train_labels)
+# explanation = explainer.model_parts()
+# train_explanation = explanation.result
+# df = pd.DataFrame([self.test_input[0]], index=["first_row"])
+# test_explanation = explainer.predict_parts(df, label=df.index[0]).result

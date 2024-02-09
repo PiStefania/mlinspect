@@ -5,6 +5,7 @@ Monkey patching for sklearn
 
 import gorilla
 import numpy
+import numpy as np
 import pandas
 from sklearn import preprocessing, compose, tree, impute, linear_model, model_selection
 from sklearn.feature_extraction import text
@@ -13,6 +14,7 @@ from sklearn.metrics import accuracy_score
 from scikeras import wrappers as keras_sklearn_external  # pylint: disable=no-name-in-module
 from scikeras import wrappers as keras_sklearn_internal  # pylint: disable=no-name-in-module
 
+from features.explainability.monkey_patching.patch_lime import call_info_singleton_lime
 from features.explainability.monkey_patching.patch_shap import call_info_singleton_shap
 from mlinspect.backends._backend import BackendResult
 from mlinspect.backends._sklearn_backend import SklearnBackend
@@ -1505,5 +1507,62 @@ class SklearnKerasClassifierPatching:
             new_result = execute_patched_func_indirect_allowed(execute_inspections)
         else:
             original = gorilla.get_original_attribute(keras_sklearn_external.KerasClassifier, 'predict')
+            new_result = original(self, *args, **kwargs)
+        return new_result
+
+    @gorilla.patch(keras_sklearn_external.KerasClassifier, name='predict_proba', settings=gorilla.Settings(allow_hit=True))
+    def patched_predict_proba(self, *args, **kwargs):
+        """ Patch for ('scikeras.wrappers.KerasClassifier', 'predict_proba') """
+        # pylint: disable=no-method-argument
+        original = gorilla.get_original_attribute(keras_sklearn_external.KerasClassifier, 'predict_proba')
+
+        def execute_inspections(_, caller_filename, lineno, optional_code_reference, optional_source_code):
+            """ Execute inspections, add DAG node """
+            # pylint: disable=too-many-locals
+            function_info = FunctionInfo('scikeras.wrappers.KerasClassifier', 'predict_proba')
+            # Test data
+            if "score" in optional_source_code or "lime" in optional_source_code or "fit" in optional_source_code:
+                return original(self, *args, **kwargs)
+            if "explain" in optional_source_code:
+                data_backend_result, test_data_node, test_data_result = add_test_data_dag_node(
+                    call_info_singleton_lime.actual_explainer_input,
+                    function_info,
+                    lineno,
+                    optional_code_reference,
+                    optional_source_code,
+                    caller_filename)
+            else:
+                data_backend_result, test_data_node, test_data_result = add_test_data_dag_node(args[0],
+                                                                                           function_info,
+                                                                                           lineno,
+                                                                                           optional_code_reference,
+                                                                                           optional_source_code,
+                                                                                           caller_filename)
+
+            operator_context = OperatorContext(OperatorType.PREDICT, function_info)
+            input_dfs = [data_backend_result.annotated_dfobject]
+            input_infos = SklearnBackend.before_call(operator_context, input_dfs)
+
+            result = original(self, *args, **kwargs)
+            estimator_backend_result = SklearnBackend.after_call(operator_context,
+                                                                 input_infos,
+                                                                 result,
+                                                                 self.mlinspect_non_data_func_args)
+            dag_node = DagNode(singleton.get_next_op_id(),
+                               BasicCodeLocation(caller_filename, lineno),
+                               operator_context,
+                               DagNodeDetails("Neural Network", []),
+                               get_optional_code_info_or_none(optional_code_reference, optional_source_code))
+            estimator_dag_node = get_dag_node_for_id(self.mlinspect_estimator_node_id)
+            add_dag_node(dag_node, [estimator_dag_node, test_data_node],
+                         estimator_backend_result)
+            if call_info_singleton_lime.mlinspect_explainer_node_id:
+                call_info_singleton_lime.parent_nodes = [dag_node]
+            return result
+
+        if not call_info_singleton.param_search_active:
+            new_result = execute_patched_func_indirect_allowed(execute_inspections)
+        else:
+            original = gorilla.get_original_attribute(keras_sklearn_external.KerasClassifier, 'predict_proba')
             new_result = original(self, *args, **kwargs)
         return new_result
