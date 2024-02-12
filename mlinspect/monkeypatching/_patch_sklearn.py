@@ -16,6 +16,7 @@ from scikeras import wrappers as keras_sklearn_internal  # pylint: disable=no-na
 
 from features.explainability.monkey_patching.patch_lime import call_info_singleton_lime
 from features.explainability.monkey_patching.patch_shap import call_info_singleton_shap
+from features.explainability.monkey_patching.patch_sklearn_inspection import call_info_singleton_sklearn_inspection
 from mlinspect.backends._backend import BackendResult
 from mlinspect.backends._sklearn_backend import SklearnBackend
 from mlinspect.inspections._inspection_input import OperatorContext, FunctionInfo, OperatorType
@@ -1394,6 +1395,8 @@ class SklearnKerasClassifierPatching:
                                get_optional_code_info_or_none(self.mlinspect_optional_code_reference,
                                                               self.mlinspect_optional_source_code))
             add_dag_node(dag_node, [train_data_dag_node, train_labels_dag_node], estimator_backend_result)
+            if call_info_singleton_sklearn_inspection:
+                call_info_singleton_sklearn_inspection.parent_nodes = [dag_node]
         else:
             original(self, *args, **kwargs)
         return self
@@ -1465,7 +1468,7 @@ class SklearnKerasClassifierPatching:
             # pylint: disable=too-many-locals
             function_info = FunctionInfo('scikeras.wrappers.KerasClassifier', 'predict')
             # Test data
-            if "score" in optional_source_code or "shap_values" in optional_source_code or "fit" in optional_source_code:
+            if "score" in optional_source_code or "shap_values" in optional_source_code or "fit" in optional_source_code or "PartialDependenceDisplay" in optional_source_code:
                 return original(self, *args, **kwargs)
             if "Explainer" in optional_source_code:
                 data_backend_result, test_data_node, test_data_result = add_test_data_dag_node(call_info_singleton_shap.actual_explainer_input,
@@ -1521,7 +1524,7 @@ class SklearnKerasClassifierPatching:
             # pylint: disable=too-many-locals
             function_info = FunctionInfo('scikeras.wrappers.KerasClassifier', 'predict_proba')
             # Test data
-            if "score" in optional_source_code or "lime" in optional_source_code or "fit" in optional_source_code:
+            if "score" in optional_source_code or "lime" in optional_source_code or "fit" in optional_source_code or "PartialDependenceDisplay" in optional_source_code:
                 return original(self, *args, **kwargs)
             if "explain" in optional_source_code:
                 data_backend_result, test_data_node, test_data_result = add_test_data_dag_node(

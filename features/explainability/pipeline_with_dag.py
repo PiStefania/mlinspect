@@ -63,22 +63,22 @@ print("Mean accuracy: {}".format(neural_net.score(X_t_test, y_test)))
 # shap.summary_plot(shap_values, X_t_test[:1], feature_names=featurisation.get_feature_names_out(), plot_type="bar")
 
 # LIME
-import lime.lime_tabular
-explainer = lime.lime_tabular.LimeTabularExplainer(X_t_train, mode='classification',
-                                                   feature_names=featurisation.get_feature_names_out(),
-                                                   class_names=["label"])
-result = explainer.explain_instance(X_t_test[0], neural_net.predict_proba)
-result.show_in_notebook()
+# import lime.lime_tabular
+# explainer = lime.lime_tabular.LimeTabularExplainer(X_t_train, mode='classification',
+#                                                    feature_names=featurisation.get_feature_names_out(),
+#                                                    class_names=["label"])
+# result = explainer.explain_instance(X_t_test[0], neural_net.predict_proba)
+# result.show_in_notebook()
 
 # # PDP
 # from sklearn.inspection import PartialDependenceDisplay
-# display = PartialDependenceDisplay.from_estimator(model, self.explainer_input, features=[1,2], kind="average")
-# self._results[ExplainabilityMethodsEnum.PDP] = {"explainer": None, "results": display}
+# display_pdp = PartialDependenceDisplay.from_estimator(estimator=neural_net, X=X_t_train, features=[1, 2], kind="average")
 
 # ICE
-# display = PartialDependenceDisplay.from_estimator(model, self.explainer_input, features=[1, 2],kind="individual")
-# self._results[ExplainabilityMethodsEnum.ICE] = {"explainer": None, "results": display}
-#
+from sklearn.inspection import PartialDependenceDisplay
+display_ice = PartialDependenceDisplay.from_estimator(estimator=neural_net, X=X_t_train, features=[1, 2], kind="individual")
+
+
 # # IG
 # from alibi.explainers import IntegratedGradients
 # ig = IntegratedGradients(neural_net,
