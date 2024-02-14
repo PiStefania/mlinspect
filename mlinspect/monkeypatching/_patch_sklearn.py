@@ -1399,7 +1399,8 @@ class SklearnKerasClassifierPatching:
             if call_info_singleton_sklearn_inspection:
                 call_info_singleton_sklearn_inspection.parent_nodes = [dag_node]
             if call_info_singleton_alibi:
-                call_info_singleton_alibi.parent_nodes = [dag_node]
+                call_info_singleton_alibi.parent_nodes_ig = [dag_node]
+                call_info_singleton_alibi.parent_nodes_ale = [dag_node]
         else:
             original(self, *args, **kwargs)
         return self
@@ -1527,9 +1528,9 @@ class SklearnKerasClassifierPatching:
             # pylint: disable=too-many-locals
             function_info = FunctionInfo('scikeras.wrappers.KerasClassifier', 'predict_proba')
             # Test data
-            if "score" in optional_source_code or "lime" in optional_source_code or "fit" in optional_source_code or "PartialDependenceDisplay" in optional_source_code:
+            if "score" in optional_source_code or "lime" in optional_source_code or "fit" in optional_source_code or "PartialDependenceDisplay" in optional_source_code or "ale" in optional_source_code:
                 return original(self, *args, **kwargs)
-            if "explain" in optional_source_code:
+            if "explain_instance" in optional_source_code:
                 data_backend_result, test_data_node, test_data_result = add_test_data_dag_node(
                     call_info_singleton_lime.actual_explainer_input,
                     function_info,

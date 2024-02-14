@@ -111,6 +111,9 @@ def create_wrapper_with_annotations(annotations_df, return_value) -> AnnotatedDf
     elif isinstance(return_value, Explanation):
         return_value = MlinspectNdarray(return_value)
         new_return_value = AnnotatedDfObject(return_value, annotations_df)
+    elif isinstance(return_value, Explanation):
+        return_value = MlinspectNdarray(return_value)
+        new_return_value = AnnotatedDfObject(return_value, annotations_df)
     else:
         raise NotImplementedError("A type that is still unsupported was found: {}".format(return_value))
     return new_return_value

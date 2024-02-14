@@ -87,10 +87,11 @@ ig = IntegratedGradients(model=neural_net.model_,
                          internal_batch_size=100)
 explanation = ig.explain(X=X_t_test[:1], baselines=None, target=0)
 
-# # ALE
+# ALE
 # from alibi.explainers import ALE
-# explainer = ALE(model.predict_proba, feature_names=self.features, target_names=["label"])
-# explanation = explainer.explain(self.explainer_input)
+# ale_explainer = ALE(neural_net.predict_proba, feature_names=featurisation.get_feature_names_out(), target_names=["label"])
+# explanation = ale_explainer.explain(X_t_train)
+
 #
 # # DALE
 # from ..dale.dale import DALE
