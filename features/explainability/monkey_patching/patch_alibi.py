@@ -19,7 +19,7 @@ class AlibiCallInfo:
     actual_explainer_input = None
 
 
-call_info_singleton_shap = AlibiCallInfo()
+call_info_singleton_alibi = AlibiCallInfo()
 
 class AlibiPatching:
     """ Patches for pandas """
@@ -27,9 +27,10 @@ class AlibiPatching:
     # pylint: disable=too-few-public-methods
 
     @gorilla.patch(alibi.explainers.IntegratedGradients, name="__init__", settings=gorilla.Settings(allow_hit=True))
-    def patched__init__(self, model, data: MlinspectNdarray, feature_names=None, link=IdentityLink(), mlinspect_caller_filename=None,
-                        mlinspect_lineno=None, mlinspect_optional_code_reference=None, mlinspect_optional_source_code=None,
-                        mlinspect_fit_transform_active=False):
+    def patched__init__(self, model, layer = None, target_fn = None, method = "gausslegendre", n_steps = 50,
+                 internal_batch_size = 100, mlinspect_caller_filename=None,
+                mlinspect_lineno=None, mlinspect_optional_code_reference=None, mlinspect_optional_source_code=None,
+                mlinspect_fit_transform_active=False):
         """ Patch for ('alibi.explainers', 'IntegratedGradients') """
         # pylint: disable=no-method-argument, attribute-defined-outside-init
         original = gorilla.get_original_attribute(alibi.explainers.IntegratedGradients, '__init__')
@@ -39,8 +40,8 @@ class AlibiPatching:
         self.mlinspect_optional_code_reference = mlinspect_optional_code_reference
         self.mlinspect_optional_source_code = mlinspect_optional_source_code
         self.mlinspect_fit_transform_active = mlinspect_fit_transform_active
-        self.mlinspect_non_data_func_args = { 'model': model, 'data': data.view(np.ndarray), 'feature_names': feature_names, 'link': link,}
-        call_info_singleton_shap.actual_explainer_input = data
+        self.mlinspect_non_data_func_args = {'model': model, 'layer': layer, 'target_fn': target_fn, 'method': method, "n_steps": n_steps,
+                                             "internal_batch_size": internal_batch_size, }
 
         def execute_inspections(_, caller_filename, lineno, optional_code_reference, optional_source_code):
             """ Execute inspections, add DAG node """
@@ -48,9 +49,9 @@ class AlibiPatching:
             self.mlinspect_lineno = lineno
             self.mlinspect_optional_code_reference = optional_code_reference
             self.mlinspect_optional_source_code = optional_source_code
-            call_info_singleton_shap.mlinspect_explainer_node_id = singleton.get_next_op_id()
+            call_info_singleton_alibi.mlinspect_explainer_node_id = singleton.get_next_op_id()
 
-            function_info = FunctionInfo('shap.KernelExplainer', '__init__')
+            function_info = FunctionInfo('alibi.explainers.IntegratedGradients', '__init__')
 
             operator_context = OperatorContext(OperatorType.CREATE_EXPLAINER, function_info)
             input_infos = ShapBackend.before_call(operator_context, [])
@@ -60,27 +61,29 @@ class AlibiPatching:
                                                     result,
                                                     self.mlinspect_non_data_func_args)
 
-            dag_node = DagNode(call_info_singleton_shap.mlinspect_explainer_node_id,
+            dag_node = DagNode(call_info_singleton_alibi.mlinspect_explainer_node_id,
                                BasicCodeLocation(caller_filename, lineno),
                                operator_context,
                                DagNodeDetails("Neural Network", []),
                                get_optional_code_info_or_none(optional_code_reference, optional_source_code))
-            add_dag_node(dag_node, call_info_singleton_shap.parent_nodes, backend_result)
+            add_dag_node(dag_node, call_info_singleton_alibi.parent_nodes, backend_result)
 
         return execute_patched_func_no_op_id(original, execute_inspections, self, **self.mlinspect_non_data_func_args)
 
-    @gorilla.patch(shap.KernelExplainer, name='shap_values', settings=gorilla.Settings(allow_hit=True))
-    def patched_shap_values(self, *args, **kwargs):
-        """ Patch for ('shap.KernelExplainer', 'shap_values') """
+    @gorilla.patch(alibi.explainers.IntegratedGradients, name='explain', settings=gorilla.Settings(allow_hit=True))
+    def patched_explain(self, X, forward_kwargs=None, baselines=None, target=None,
+                attribute_to_layer_inputs=False):
+        """ Patch for ('alibi.explainers.IntegratedGradients', 'explain') """
         # pylint: disable=no-method-argument
-        original = gorilla.get_original_attribute(shap.KernelExplainer, 'shap_values')
+        original = gorilla.get_original_attribute(alibi.explainers.IntegratedGradients, 'explain')
+        args={'X': X, 'forward_kwargs': forward_kwargs, 'baselines': baselines, 'target': target, "attribute_to_layer_inputs": attribute_to_layer_inputs}
 
         def execute_inspections(_, caller_filename, lineno, optional_code_reference, optional_source_code):
             """ Execute inspections, add DAG node """
             # pylint: disable=too-many-locals
-            function_info = FunctionInfo('shap.KernelExplainer', 'shap_values')
+            function_info = FunctionInfo('alibi.explainers.IntegratedGradients', 'explain')
             # Test data
-            data_backend_result, test_data_node, test_data_result = add_test_data_dag_node(args[0],
+            data_backend_result, test_data_node, test_data_result = add_test_data_dag_node(X,
                                                                                            function_info,
                                                                                            lineno,
                                                                                            optional_code_reference,
@@ -91,24 +94,25 @@ class AlibiPatching:
             input_dfs = [data_backend_result.annotated_dfobject]
             input_infos = ShapBackend.before_call(operator_context, input_dfs)
 
-            result = original(self, test_data_result.view(np.ndarray), *args[2:], **kwargs)
+            result = original(self, **args)
             backend_result = ShapBackend.after_call(operator_context,
-                                                                 input_infos,
-                                                                 result,
-                                                                 self.mlinspect_non_data_func_args)
+                                                    input_infos,
+                                                    result,
+                                                    self.mlinspect_non_data_func_args)
             dag_node = DagNode(singleton.get_next_op_id(),
                                BasicCodeLocation(caller_filename, lineno),
                                operator_context,
                                DagNodeDetails("Shapley Values", []),
                                get_optional_code_info_or_none(optional_code_reference, optional_source_code))
 
-            explainer_dag_node = get_dag_node_for_id(call_info_singleton_shap.mlinspect_explainer_node_id)
+            explainer_dag_node = get_dag_node_for_id(call_info_singleton_alibi.mlinspect_explainer_node_id)
             add_dag_node(dag_node, [explainer_dag_node, test_data_node],
                          backend_result)
             return result
-        if not call_info_singleton_shap.param_search_active:
+
+        if not call_info_singleton_alibi.param_search_active:
             new_result = execute_patched_func_indirect_allowed(execute_inspections)
         else:
-            original = gorilla.get_original_attribute(shap.KernelExplainer, 'shap_values')
-            new_result = original(self, *args, **kwargs)
+            original = gorilla.get_original_attribute(alibi.explainers.IntegratedGradients, 'explain')
+            new_result = original(self, **args)
         return new_result

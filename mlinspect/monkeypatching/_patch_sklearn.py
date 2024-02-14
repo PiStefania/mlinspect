@@ -14,6 +14,7 @@ from sklearn.metrics import accuracy_score
 from scikeras import wrappers as keras_sklearn_external  # pylint: disable=no-name-in-module
 from scikeras import wrappers as keras_sklearn_internal  # pylint: disable=no-name-in-module
 
+from features.explainability.monkey_patching.patch_alibi import call_info_singleton_alibi
 from features.explainability.monkey_patching.patch_lime import call_info_singleton_lime
 from features.explainability.monkey_patching.patch_shap import call_info_singleton_shap
 from features.explainability.monkey_patching.patch_sklearn_inspection import call_info_singleton_sklearn_inspection
@@ -1397,6 +1398,8 @@ class SklearnKerasClassifierPatching:
             add_dag_node(dag_node, [train_data_dag_node, train_labels_dag_node], estimator_backend_result)
             if call_info_singleton_sklearn_inspection:
                 call_info_singleton_sklearn_inspection.parent_nodes = [dag_node]
+            if call_info_singleton_alibi:
+                call_info_singleton_alibi.parent_nodes = [dag_node]
         else:
             original(self, *args, **kwargs)
         return self

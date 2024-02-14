@@ -70,23 +70,23 @@ print("Mean accuracy: {}".format(neural_net.score(X_t_test, y_test)))
 # result = explainer.explain_instance(X_t_test[0], neural_net.predict_proba)
 # result.show_in_notebook()
 
-# # PDP
+# PDP
 # from sklearn.inspection import PartialDependenceDisplay
 # display_pdp = PartialDependenceDisplay.from_estimator(estimator=neural_net, X=X_t_train, features=[1, 2], kind="average")
 
 # ICE
-from sklearn.inspection import PartialDependenceDisplay
-display_ice = PartialDependenceDisplay.from_estimator(estimator=neural_net, X=X_t_train, features=[1, 2], kind="individual")
+# from sklearn.inspection import PartialDependenceDisplay
+# display_ice = PartialDependenceDisplay.from_estimator(estimator=neural_net, X=X_t_train, features=[1, 2], kind="individual")
 
 
-# # IG
-# from alibi.explainers import IntegratedGradients
-# ig = IntegratedGradients(neural_net,
-#                          method="gausslegendre",
-#                          n_steps=50,
-#                          internal_batch_size=100)
-# explanation = ig.explain(X_t_test[:1],baselines=None,target=0)
-#
+# IG
+from alibi.explainers import IntegratedGradients
+ig = IntegratedGradients(model=neural_net.model_,
+                         method="gausslegendre",
+                         n_steps=50,
+                         internal_batch_size=100)
+explanation = ig.explain(X=X_t_test[:1], baselines=None, target=0)
+
 # # ALE
 # from alibi.explainers import ALE
 # explainer = ALE(model.predict_proba, feature_names=self.features, target_names=["label"])
