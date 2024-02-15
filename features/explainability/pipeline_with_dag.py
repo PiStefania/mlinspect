@@ -80,12 +80,12 @@ print("Mean accuracy: {}".format(neural_net.score(X_t_test, y_test)))
 
 
 # IG
-from alibi.explainers import IntegratedGradients
-ig = IntegratedGradients(model=neural_net.model_,
-                         method="gausslegendre",
-                         n_steps=50,
-                         internal_batch_size=100)
-explanation = ig.explain(X=X_t_test[:1], baselines=None, target=0)
+# from alibi.explainers import IntegratedGradients
+# ig = IntegratedGradients(model=neural_net.model_,
+#                          method="gausslegendre",
+#                          n_steps=50,
+#                          internal_batch_size=100)
+# explanation = ig.explain(X=X_t_test[:1], baselines=None, target=0)
 
 # ALE
 # from alibi.explainers import ALE
@@ -93,21 +93,22 @@ explanation = ig.explain(X=X_t_test[:1], baselines=None, target=0)
 # explanation = ale_explainer.explain(X_t_train)
 
 #
-# # DALE
-# from ..dale.dale import DALE
-# import tensorflow as tf
-#
-# def model_grad(input):
-#     x_inp = tf.cast(input, tf.float32)
-#     with tf.GradientTape() as tape:
-#         tape.watch(x_inp)
-#         preds = model.model_(x_inp)
-#     grads = tape.gradient(preds, x_inp)
-#     return grads.numpy()
-# dale = DALE(data=self.test_input, model=model, model_jac=model_grad)
-# dale.fit()
-# explanations = dale.eval(x=self.explainer_input, s=0)
-#
+# DALE
+from features.explainability.dale.dale import DALE
+import tensorflow as tf
+
+def model_grad(input):
+    x_inp = tf.cast(input, tf.float32)
+    with tf.GradientTape() as tape:
+        tape.watch(x_inp)
+        preds = neural_net.model_(x_inp)
+    grads = tape.gradient(preds, x_inp)
+    return grads.numpy()
+
+dale = DALE(data=X_t_test, model=neural_net, model_jac=model_grad)
+dale.fit()
+explanations = dale.eval(x=X_t_train, s=0)
+
 # # DALEX
 # import dalex as dx
 # explainer = dx.Explainer(model, self.explainer_input, self.train_labels)

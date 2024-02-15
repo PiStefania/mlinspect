@@ -15,6 +15,7 @@ from scikeras import wrappers as keras_sklearn_external  # pylint: disable=no-na
 from scikeras import wrappers as keras_sklearn_internal  # pylint: disable=no-name-in-module
 
 from features.explainability.monkey_patching.patch_alibi import call_info_singleton_alibi
+from features.explainability.monkey_patching.patch_dale import call_info_singleton_dale
 from features.explainability.monkey_patching.patch_lime import call_info_singleton_lime
 from features.explainability.monkey_patching.patch_shap import call_info_singleton_shap
 from features.explainability.monkey_patching.patch_sklearn_inspection import call_info_singleton_sklearn_inspection
@@ -1401,6 +1402,8 @@ class SklearnKerasClassifierPatching:
             if call_info_singleton_alibi:
                 call_info_singleton_alibi.parent_nodes_ig = [dag_node]
                 call_info_singleton_alibi.parent_nodes_ale = [dag_node]
+            if call_info_singleton_dale:
+                call_info_singleton_dale.parent_nodes = [dag_node]
         else:
             original(self, *args, **kwargs)
         return self
