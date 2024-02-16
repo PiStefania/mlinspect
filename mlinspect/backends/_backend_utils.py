@@ -6,6 +6,8 @@ import itertools
 import lime
 import numpy
 from alibi.api.interfaces import Explanation
+from dalex.model_explanations import VariableImportance
+from dalex.predict_explanations import BreakDown
 from pandas import DataFrame, Series
 from scikeras.wrappers import KerasClassifier
 from scipy.sparse import csr_matrix
@@ -115,6 +117,10 @@ def create_wrapper_with_annotations(annotations_df, return_value) -> AnnotatedDf
         return_value = MlinspectNdarray(return_value)
         new_return_value = AnnotatedDfObject(return_value, annotations_df)
     elif isinstance(return_value, MlinspectNdarray):
+        new_return_value = AnnotatedDfObject(return_value, annotations_df)
+    elif isinstance(return_value, VariableImportance):
+        new_return_value = AnnotatedDfObject(return_value, annotations_df)
+    elif isinstance(return_value, BreakDown):
         new_return_value = AnnotatedDfObject(return_value, annotations_df)
     else:
         raise NotImplementedError("A type that is still unsupported was found: {}".format(return_value))

@@ -94,25 +94,25 @@ print("Mean accuracy: {}".format(neural_net.score(X_t_test, y_test)))
 
 #
 # DALE
-from features.explainability.dale.dale import DALE
-import tensorflow as tf
+# from features.explainability.dale.dale import DALE
+# import tensorflow as tf
+#
+# def model_grad(input):
+#     x_inp = tf.cast(input, tf.float32)
+#     with tf.GradientTape() as tape:
+#         tape.watch(x_inp)
+#         preds = neural_net.model_(x_inp)
+#     grads = tape.gradient(preds, x_inp)
+#     return grads.numpy()
+#
+# dale = DALE(data=X_t_test, model=neural_net, model_jac=model_grad)
+# dale.fit()
+# explanations = dale.eval(x=X_t_train, s=0)
 
-def model_grad(input):
-    x_inp = tf.cast(input, tf.float32)
-    with tf.GradientTape() as tape:
-        tape.watch(x_inp)
-        preds = neural_net.model_(x_inp)
-    grads = tape.gradient(preds, x_inp)
-    return grads.numpy()
-
-dale = DALE(data=X_t_test, model=neural_net, model_jac=model_grad)
-dale.fit()
-explanations = dale.eval(x=X_t_train, s=0)
-
-# # DALEX
-# import dalex as dx
-# explainer = dx.Explainer(model, self.explainer_input, self.train_labels)
-# explanation = explainer.model_parts()
-# train_explanation = explanation.result
-# df = pd.DataFrame([self.test_input[0]], index=["first_row"])
-# test_explanation = explainer.predict_parts(df, label=df.index[0]).result
+# DALEX
+import dalex
+dalex_explainer = dalex.Explainer(neural_net, X_t_train, y_train, predict_function=KerasClassifier.predict)
+explanation = dalex_explainer.model_parts()
+train_explanation = explanation.result
+df = pd.DataFrame([X_t_test.view(np.ndarray)[0]], index=["first_row"])
+test_explanation = dalex_explainer.predict_parts(df, label=df.index[0]).result
