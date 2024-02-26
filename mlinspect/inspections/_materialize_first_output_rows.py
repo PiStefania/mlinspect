@@ -1,12 +1,19 @@
 """
 A simple inspection to materialise operator outputs
 """
-from typing import Iterable
+
+from typing import Any, Iterable, List, Union
 
 from pandas import DataFrame
 
 from ._inspection import Inspection
-from ._inspection_input import InspectionInputSinkOperator, OperatorType
+from ._inspection_input import (
+    InspectionInputDataSource,
+    InspectionInputNAryOperator,
+    InspectionInputSinkOperator,
+    InspectionInputUnaryOperator,
+    OperatorType,
+)
 
 
 class MaterializeFirstOutputRows(Inspection):
@@ -17,19 +24,27 @@ class MaterializeFirstOutputRows(Inspection):
     def __init__(self, row_count: int):
         self.row_count = row_count
         self._analyzer_id = self.row_count
-        self._first_rows_op_output = None
-        self._operator_type = None
-        self._output_columns = None
+        self._first_rows_op_output: List[Any] | None = None
+        self._operator_type: OperatorType | None = None
+        self._output_columns: List[str] | None = None
 
     @property
-    def inspection_id(self):
+    def inspection_id(self) -> Any | None:
         return self._analyzer_id
 
-    def visit_operator(self, inspection_input) -> Iterable[any]:
+    def visit_operator(
+        self,
+        inspection_input: Union[
+            InspectionInputDataSource,
+            InspectionInputUnaryOperator,
+            InspectionInputNAryOperator,
+            InspectionInputSinkOperator,
+        ],
+    ) -> Iterable[Any]:
         """
         Visit an operator
         """
-        current_count = - 1
+        current_count = -1
         operator_output = []
         self._operator_type = inspection_input.operator_context.operator
 
@@ -46,11 +61,15 @@ class MaterializeFirstOutputRows(Inspection):
 
         self._first_rows_op_output = operator_output
 
-    def get_operator_annotation_after_visit(self) -> any:
+    def get_operator_annotation_after_visit(self) -> Any:
         assert self._operator_type
         if self._operator_type is not OperatorType.ESTIMATOR:
-            assert self._first_rows_op_output and self._output_columns is not None  # Visit must be finished
-            result = DataFrame(self._first_rows_op_output, columns=self._output_columns)
+            assert (
+                self._first_rows_op_output and self._output_columns is not None
+            )  # Visit must be finished
+            result = DataFrame(
+                self._first_rows_op_output, columns=self._output_columns
+            )
             self._first_rows_op_output = None
             self._operator_type = None
             self._output_columns = None

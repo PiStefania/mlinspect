@@ -1,7 +1,7 @@
 # Support for different libraries and API functions
 
 ## Handling of unknown functions
-* Extending mlinspect to support more and more API functions and libraries will be an ongoing effort. External contributions are very welcome! 
+* Extending mlinspect to support more and more API functions and libraries will be an ongoing effort. External contributions are very welcome!
 * However, mlinspect doesn't just crash when it encounters unknown functions.
 * mlinspect just ignores functions it doesn't recognize. If a function it does recognize encounters the input from a relevant unknown function, it will create a `MISSING_OP` node for a single or multiple unknown function calls. The inspections also get to see this unknown input, from their perspective it's just a new data source.
 * Example:
@@ -17,7 +17,7 @@ test_code = cleandoc("""
         from inspect import cleandoc
         import pandas
         from mlinspect.testing._testing_helper_utils import black_box_df_op
-        
+
         df = black_box_df_op()
         df = df.dropna()
         """)
@@ -41,16 +41,16 @@ expected_dag.add_edge(expected_missing_op, expected_select)
 compare(networkx.to_dict_of_dicts(extracted_dag), networkx.to_dict_of_dicts(expected_dag))
 ```
 
-## Pandas 
+## Pandas
 * The implementation can be found mainly [here](./_patch_pandas.py)
 * The [tests](../../test/monkeypatching/test_patch_pandas.py) are probably more useful to look at
-* Currently supported functions: 
+* Currently supported functions:
 
-| Function Call        | Operator        
+| Function Call        | Operator
 | ------------- |:-------------:|
-| `('pandas.io.parsers', 'read_csv')`      | Data Source | 
-| `('pandas.core.frame', 'DataFrame')`      | Data Source      | 
-| `('pandas.core.series', 'Series')`      | Data Source      | 
+| `('pandas.io.parsers', 'read_csv')`      | Data Source |
+| `('pandas.core.frame', 'DataFrame')`      | Data Source      |
+| `('pandas.core.series', 'Series')`      | Data Source      |
 | `('pandas.core.frame', '__getitem__')`, arg type: strings | Projection|
 | `('pandas.core.frame', '__getitem__')`, arg type: series | Selection |
 | `('pandas.core.frame', 'dropna')` | Selection      |
@@ -60,17 +60,17 @@ compare(networkx.to_dict_of_dicts(extracted_dag), networkx.to_dict_of_dicts(expe
 | `('pandas.core.frame', 'groupby')` | Nothing (until a following agg call)     |
 | `('pandas.core.groupbygeneric', 'agg')` | Groupby/Agg      |
 
-## Sklearn 
+## Sklearn
 * The implementation can be found mainly [here](./_patch_sklearn.py)
-* The [tests](../../test/monkeypatching/test_patch_sklearn.py) are probably more useful to look at 
-* Currently supported functions: 
+* The [tests](../../test/monkeypatching/test_patch_sklearn.py) are probably more useful to look at
+* Currently supported functions:
 
-| Function Call                                                                    | Operator        
+| Function Call                                                                    | Operator
 |----------------------------------------------------------------------------------|:-------------:|
 | `('sklearn.compose._column_transformer', 'ColumnTransformer')`, column selection | Projection |
 | `('sklearn.preprocessing._label', 'label_binarize')`                             | Projection (Mod)      |
 | `('sklearn.compose._column_transformer', 'ColumnTransformer')`, concatenation    | Concatenation      |
-| `('sklearn.model_selection._split', 'train_test_split')`                         | Split (Train/Test) 
+| `('sklearn.model_selection._split', 'train_test_split')`                         | Split (Train/Test)
 | `('sklearn.preprocessing._encoders', 'OneHotEncoder')`, arg type: strings        | Transformer |
 | `('sklearn.preprocessing._data', 'StandardScaler')`                              | Transformer      |
 | `('sklearn.impute._base’, 'SimpleImputer')`                                      | Transformer      |
@@ -83,22 +83,22 @@ compare(networkx.to_dict_of_dicts(extracted_dag), networkx.to_dict_of_dicts(expe
 | `('sklearn.linear_model._logistic', 'LogisticRegression')`                       | Estimator      |
 
 
-## Numpy 
+## Numpy
 * The implementation can be found mainly [here](./_patch_numpy.py)
-* The [tests](../../test/monkeypatching/test_patch_numpy.py) are probably more useful to look at 
-* Currently supported functions: 
+* The [tests](../../test/monkeypatching/test_patch_numpy.py) are probably more useful to look at
+* Currently supported functions:
 
-| Function Call        | Operator        
+| Function Call        | Operator
 | ------------- |:-------------:|
-| `('numpy.random', 'random')`      | Data Source | 
+| `('numpy.random', 'random')`      | Data Source |
 
 ## Statsmodels
 * The implementation can be found mainly [here](./_patch_statsmodels.py)
-* The [tests](../../test/monkeypatching/test_patch_statsmodels.py) are probably more useful to look at 
-* Currently supported functions: 
+* The [tests](../../test/monkeypatching/test_patch_statsmodels.py) are probably more useful to look at
+* Currently supported functions:
 
-| Function Call        | Operator        
+| Function Call        | Operator
 | ------------- |:-------------:|
-| `('statsmodels.datasets', 'get_rdataset')`      | Data Source | 
-| `('statsmodels.api', 'add_constant')`      | Projection (Mod) | 
-| `('statsmodel.api', 'OLS')`, numpy syntax      | Estimator | 
+| `('statsmodels.datasets', 'get_rdataset')`      | Data Source |
+| `('statsmodels.api', 'add_constant')`      | Projection (Mod) |
+| `('statsmodel.api', 'OLS')`, numpy syntax      | Estimator |

@@ -7,6 +7,9 @@ help:
 	@echo "  teardown               to teardown the docker container."
 	@echo "  recreate               to teardown and run the docker container again."
 	@echo "  test               	to run the tests. Use the 'target' arg if you want to limit the tests that will run."
+	@echo "  install-pre-commit     to install pre-commit hooks on commit that run on docker."
+	@echo "  pre-commit             to run the pre-commit checks."
+	@echo "  lock-noupdate          to run poetry lock with no update."
 
 run:
 	docker compose up --build
@@ -22,6 +25,16 @@ recreate: teardown run
 test:
 	docker compose run ${exec_args} --rm mlinspect pytest $(target) -x
 
+pre-commit:
+	docker compose run ${exec_args} --rm mlinspect pre-commit run ${args}
+
+install-pre-commit:
+	echo '#!/usr/bin/env bash\nset -eo pipefail\nmake -f "$(PWD)/Makefile" pre-commit exec_args="-T"' > "$(PWD)/.git/hooks/pre-commit"
+	chmod ug+x .git/hooks/pre-commit
+
+lock-noupdate:
+	docker compose run ${exec_args} --rm mlinspect sh -c "poetry lock --no-update"
+
 
 .PHONY: \
 	help \
@@ -29,4 +42,7 @@ test:
 	logs \
 	teardown \
 	recreate \
-	test
+	test \
+	pre-commit \
+	install-pre-commit \
+	lock-noupdate

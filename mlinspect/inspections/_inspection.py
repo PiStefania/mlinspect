@@ -1,11 +1,16 @@
 """
 The Interface for the Inspection
 """
-import abc
-from typing import Union, Iterable
 
-from mlinspect.inspections._inspection_input import InspectionInputDataSource, \
-    InspectionInputUnaryOperator, InspectionInputNAryOperator, InspectionInputSinkOperator
+import abc
+from typing import Any, Iterable, Union
+
+from mlinspect.inspections._inspection_input import (
+    InspectionInputDataSource,
+    InspectionInputNAryOperator,
+    InspectionInputSinkOperator,
+    InspectionInputUnaryOperator,
+)
 
 
 class Inspection(metaclass=abc.ABCMeta):
@@ -14,31 +19,39 @@ class Inspection(metaclass=abc.ABCMeta):
     """
 
     @property
-    def inspection_id(self):
+    def inspection_id(self) -> Any | None:
         """The id of the inspection"""
         return None
 
     @abc.abstractmethod
-    def visit_operator(self, inspection_input: Union[InspectionInputDataSource, InspectionInputUnaryOperator,
-                                                     InspectionInputNAryOperator, InspectionInputSinkOperator])\
-            -> Iterable[any]:
+    def visit_operator(
+        self,
+        inspection_input: Union[
+            InspectionInputDataSource,
+            InspectionInputUnaryOperator,
+            InspectionInputNAryOperator,
+            InspectionInputSinkOperator,
+        ],
+    ) -> Iterable[Any]:
         """Visit an operator in the DAG"""
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_operator_annotation_after_visit(self) -> any:
+    def get_operator_annotation_after_visit(self) -> Any:
         """Get the output to be included in the DAG"""
         raise NotImplementedError
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """Inspections must implement equals"""
-        return (isinstance(other, self.__class__) and
-                self.inspection_id == other.inspection_id)
+        return (
+            isinstance(other, self.__class__)
+            and self.inspection_id == other.inspection_id
+        )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """Inspections must be hashable"""
         return hash((self.__class__.__name__, self.inspection_id))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Inspections must have a str representation"""
         return "{}({})".format(self.__class__.__name__, self.inspection_id)

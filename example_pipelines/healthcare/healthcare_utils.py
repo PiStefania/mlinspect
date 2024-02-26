@@ -1,15 +1,18 @@
 """
 Some useful utils for the project
 """
-import numpy
+
+from typing import Any, Callable
+
 import numpy as np
-import six
 from gensim import models
-from sklearn.base import TransformerMixin, BaseEstimator
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.exceptions import NotFittedError
-from tensorflow.keras.layers import Dense  # pylint: disable=no-name-in-module
-from tensorflow.keras.models import Sequential  # pylint: disable=no-name-in-module
-from tensorflow.keras.optimizers import SGD  # pylint: disable=no-name-in-module
+from tensorflow.python.keras.layers import Dense
+from tensorflow.python.keras.models import Sequential
+from tensorflow.python.keras.optimizer_v2 import gradient_descent
+from typing_extensions import Self
+
 
 # copied as gensim migration guide described here: https://github.com/RaRe-Technologies/gensim/wiki/Migrating-from-Gensim-3.x-to-4
 class W2VTransformer(TransformerMixin, BaseEstimator):
@@ -19,9 +22,29 @@ class W2VTransformer(TransformerMixin, BaseEstimator):
     Estimation of Word Representations in Vector Space" <https://arxiv.org/abs/1301.3781>`_.
 
     """
-    def __init__(self, vector_size=100, alpha=0.025, window=5, min_count=5, max_vocab_size=None, sample=1e-3, seed=1,
-                 workers=3, min_alpha=0.0001, sg=0, hs=0, negative=5, cbow_mean=1, hashfxn=hash, epochs=5, null_word=0,
-                 trim_rule=None, sorted_vocab=1, batch_words=10000):
+
+    def __init__(
+        self,
+        vector_size: int = 100,
+        alpha: float = 0.025,
+        window: int = 5,
+        min_count: int = 5,
+        max_vocab_size: int | None = None,
+        sample: float = 1e-3,
+        seed: int = 1,
+        workers: int = 3,
+        min_alpha: float = 0.0001,
+        sg: int = 0,
+        hs: int = 0,
+        negative: int = 5,
+        cbow_mean: int = 1,
+        hashfxn: Callable = hash,
+        epochs: int = 5,
+        null_word: int = 0,
+        trim_rule: Callable | None = None,
+        sorted_vocab: int = 1,
+        batch_words: int = 10000,
+    ) -> None:
         """
 
         Parameters
@@ -105,7 +128,7 @@ class W2VTransformer(TransformerMixin, BaseEstimator):
         self.sorted_vocab = sorted_vocab
         self.batch_words = batch_words
 
-    def fit(self, X, y=None):
+    def fit(self, X: Any, y: Any | None = None) -> Self:
         """Fit the model according to the given training data.
 
         Parameters
@@ -123,16 +146,30 @@ class W2VTransformer(TransformerMixin, BaseEstimator):
 
         """
         self.gensim_model = models.Word2Vec(
-            sentences=X, vector_size=self.vector_size, alpha=self.alpha,
-            window=self.window, min_count=self.min_count, max_vocab_size=self.max_vocab_size,
-            sample=self.sample, seed=self.seed, workers=self.workers, min_alpha=self.min_alpha,
-            sg=self.sg, hs=self.hs, negative=self.negative, cbow_mean=self.cbow_mean,
-            hashfxn=self.hashfxn, epochs=self.epochs, null_word=self.null_word, trim_rule=self.trim_rule,
-            sorted_vocab=self.sorted_vocab, batch_words=self.batch_words
+            sentences=X,
+            vector_size=self.vector_size,
+            alpha=self.alpha,
+            window=self.window,
+            min_count=self.min_count,
+            max_vocab_size=self.max_vocab_size,
+            sample=self.sample,
+            seed=self.seed,
+            workers=self.workers,
+            min_alpha=self.min_alpha,
+            sg=self.sg,
+            hs=self.hs,
+            negative=self.negative,
+            cbow_mean=self.cbow_mean,
+            hashfxn=self.hashfxn,
+            epochs=self.epochs,
+            null_word=self.null_word,
+            trim_rule=self.trim_rule,
+            sorted_vocab=self.sorted_vocab,
+            batch_words=self.batch_words,
         )
         return self
 
-    def transform(self, words):
+    def transform(self, words: Any) -> np.ndarray:
         """Get the word vectors the input words.
 
         Parameters
@@ -152,12 +189,12 @@ class W2VTransformer(TransformerMixin, BaseEstimator):
             )
 
         # The input as array of array
-        if isinstance(words, six.string_types):
+        if isinstance(words, str):
             words = [words]
         vectors = [self.gensim_model.wv[word] for word in words]
         return np.reshape(np.array(vectors), (len(words), self.vector_size))
 
-    def partial_fit(self, X):
+    def partial_fit(self, X: Any) -> Any:
         raise NotImplementedError(
             "'partial_fit' has not been implemented for W2VTransformer. "
             "However, the model can be updated with a fixed vocabulary using Gensim API call."
@@ -167,15 +204,15 @@ class W2VTransformer(TransformerMixin, BaseEstimator):
 class MyW2VTransformer(W2VTransformer):
     """Some custom w2v transformer."""
 
-    def partial_fit(self, X):
+    def partial_fit(self, X: Any) -> Any:
         # pylint: disable=useless-super-delegation
         super().partial_fit([X])
 
-    def fit(self, X, y=None):
+    def fit(self, X: Any, y: Any | None = None) -> Self:
         X = X.iloc[:, 0].tolist()
         return super().fit([X], y)
 
-    def transform(self, words):
+    def transform(self, words: Any) -> np.ndarray:
         words = words.iloc[:, 0].tolist()
         if self.gensim_model is None:
             raise NotFittedError(
@@ -188,33 +225,47 @@ class MyW2VTransformer(W2VTransformer):
             if word in self.gensim_model.wv:
                 vectors.append(self.gensim_model.wv[word])
             else:
-                vectors.append(numpy.zeros(self.vector_size))
-        return numpy.reshape(numpy.array(vectors), (len(words), self.vector_size))
+                vectors.append(np.zeros(self.vector_size))
+        return np.reshape(np.array(vectors), (len(words), self.vector_size))
 
 
-def create_model():
+def create_model() -> Sequential:
     """Create a simple neural network"""
     clf = Sequential()
-    clf.add(Dense(9, activation='relu', input_dim=109))
-    clf.add(Dense(9, activation='relu'))
-    clf.add(Dense(1, activation='softmax'))
-    clf.compile(loss='categorical_crossentropy', optimizer=SGD(), metrics=["accuracy"])
+    clf.add(Dense(9, activation="relu", input_dim=109))
+    clf.add(Dense(9, activation="relu"))
+    clf.add(Dense(1, activation="softmax"))
+    clf.compile(
+        loss="categorical_crossentropy",
+        optimizer=gradient_descent.SGD(),
+        metrics=["accuracy"],
+    )
     return clf
 
-def create_model_with_input(input_dim=10):
+
+def create_model_with_input(input_dim: int = 10) -> Sequential:
     """Create a simple neural network"""
     clf = Sequential()
-    clf.add(Dense(9, activation='relu', input_dim=input_dim))
-    clf.add(Dense(9, activation='relu'))
-    clf.add(Dense(2, activation='softmax'))
-    clf.compile(loss='categorical_crossentropy', optimizer=SGD(), metrics=["accuracy"])
+    clf.add(Dense(9, activation="relu", input_dim=input_dim))
+    clf.add(Dense(9, activation="relu"))
+    clf.add(Dense(2, activation="softmax"))
+    clf.compile(
+        loss="categorical_crossentropy",
+        optimizer=gradient_descent.SGD(),
+        metrics=["accuracy"],
+    )
     return clf
 
-def create_model_predict():
+
+def create_model_predict() -> Sequential:
     """Create a simple neural network"""
     clf = Sequential()
-    clf.add(Dense(9, activation='relu', input_dim=9))
-    clf.add(Dense(9, activation='relu'))
-    clf.add(Dense(1, activation='sigmoid'))
-    clf.compile(loss='binary_crossentropy', optimizer=SGD(), metrics=["accuracy"])
+    clf.add(Dense(9, activation="relu", input_dim=9))
+    clf.add(Dense(9, activation="relu"))
+    clf.add(Dense(1, activation="sigmoid"))
+    clf.compile(
+        loss="binary_crossentropy",
+        optimizer=gradient_descent.SGD(),
+        metrics=["accuracy"],
+    )
     return clf

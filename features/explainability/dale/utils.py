@@ -1,9 +1,12 @@
-import typing
-import numpy as np
 import copy
+import typing
+
+import numpy as np
 
 
-def create_fix_size_bins(data: np.array, k: int) -> typing.Tuple[np.ndarray, float]:
+def create_fix_size_bins(
+    data: np.ndarray, k: int
+) -> typing.Tuple[np.ndarray, float]:
     """Find the bin limits.
 
     Parameters
@@ -25,14 +28,21 @@ def create_fix_size_bins(data: np.array, k: int) -> typing.Tuple[np.ndarray, flo
 
     z_start = np.min(data)
     z_stop = np.max(data)
-    assert z_stop > z_start, "The dataset must contain more than one discrete points."
+    assert (
+        z_stop > z_start
+    ), "The dataset must contain more than one discrete points."
 
-    limits, dx = np.linspace(z_start, z_stop, num=k + 1, endpoint=True, retstep=True)
-    return limits
+    limits: np.ndarray
+    dx: float
+    limits, dx = np.linspace(
+        z_start, z_stop, num=k + 1, endpoint=True, retstep=True
+    )
+    return limits, dx
 
 
-def compute_data_effect(data: np.ndarray, model: typing.Callable,
-                        limits: np.ndarray, feature: int) -> np.ndarray:
+def compute_data_effect(
+    data: np.ndarray, model: typing.Callable, limits: np.ndarray, feature: int
+) -> np.ndarray:
     """Compute the local effect of each data point.
 
     The function (a) allocates the points in the bins based on the feature of interest
@@ -73,32 +83,41 @@ def compute_data_effect(data: np.ndarray, model: typing.Callable,
     right_lim = copy.deepcopy(data)
     left_lim = copy.deepcopy(data)
     right_lim[:, feature] = limits[ind]
-    left_lim[:, feature] = limits[ind-1]
+    left_lim[:, feature] = limits[ind - 1]
     dx = limits[1] - limits[0]
-    data_effect = (model(right_lim) - model(left_lim))
-    return np.squeeze(data_effect) / dx
+    data_effect = model(right_lim) - model(left_lim)
+    result: np.ndarray = np.squeeze(data_effect) / dx
+    return result
 
 
-def filter_points_belong_to_bin(data: np.ndarray, data_effect: np.ndarray, limits: np.ndarray):
+def filter_points_belong_to_bin(
+    data: np.ndarray, data_effect: np.ndarray, limits: np.ndarray
+) -> tuple:
     filt = np.logical_and(limits[0] <= data, data <= limits[1])
     data_effect = data_effect[filt]
     data = data[filt]
     return data, data_effect
 
 
-def compute_data_effect_single_bin(data: np.ndarray, model: typing.Callable, limits: np.ndarray,
-                                   dx: float, feature: int) -> np.ndarray:
-
+def compute_data_effect_single_bin(
+    data: np.ndarray,
+    model: typing.Callable,
+    limits: np.ndarray,
+    dx: float,
+    feature: int,
+) -> np.ndarray:
     # compute effect
     right_lim = copy.deepcopy(data)
     left_lim = copy.deepcopy(data)
     right_lim[:, feature] = limits[-1]
     left_lim[:, feature] = limits[0]
-    data_effect = (model(right_lim) - model(left_lim))/dx
+    data_effect: np.ndarray = (model(right_lim) - model(left_lim)) / dx
     return data_effect
 
 
-def compute_bin_effect_mean(data: np.ndarray, data_effect: np.ndarray, limits: np.ndarray) -> typing.Tuple[np.ndarray, np.ndarray]:
+def compute_bin_effect_mean(
+    data: np.ndarray, data_effect: np.ndarray, limits: np.ndarray
+) -> typing.Tuple[np.ndarray, np.ndarray]:
     """Compute the mean effect in each bin.
 
     The function (a) allocates the points in the bins and (b) computes the mean effect of the points that lie
@@ -136,11 +155,21 @@ def compute_bin_effect_mean(data: np.ndarray, data_effect: np.ndarray, limits: n
     points_per_bin = np.bincount(ind - 1, minlength=nof_bins)
 
     # if no point lies in a bin, store Nan
-    bin_effect_mean = np.divide(aggregated_effect, points_per_bin, out=np.ones(aggregated_effect.shape, dtype=float)*empty_symbol, where=points_per_bin != 0)
+    bin_effect_mean: np.ndarray = np.divide(
+        aggregated_effect,
+        points_per_bin,
+        out=np.ones(aggregated_effect.shape, dtype=float) * empty_symbol,
+        where=points_per_bin != 0,
+    )
     return bin_effect_mean, points_per_bin
 
 
-def compute_bin_effect_variance(data, data_effect, limits, bin_effect_mean):
+def compute_bin_effect_variance(
+    data: np.ndarray,
+    data_effect: np.ndarray,
+    limits: np.ndarray,
+    bin_effect_mean: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
     """Compute the variance of the effect in each bin.
 
     The function (a) allocates the points in the bins and (b) computes the variance in each bin and the variance
@@ -177,24 +206,32 @@ def compute_bin_effect_variance(data, data_effect, limits, bin_effect_mean):
     # variance of the effect in each bin
     variance_per_point = (data_effect - bin_effect_mean[ind - 1]) ** 2
     nof_bins = limits.shape[0] - 1
-    aggregated_variance_per_bin = np.bincount(ind - 1, variance_per_point, minlength=nof_bins)
+    aggregated_variance_per_bin = np.bincount(
+        ind - 1, variance_per_point, minlength=nof_bins
+    )
     points_per_bin = np.bincount(ind - 1, minlength=nof_bins)
 
     # if no point lies in a bin, store Nan
-    bin_variance = np.divide(aggregated_variance_per_bin,
-                             points_per_bin,
-                             out=np.ones(aggregated_variance_per_bin.shape,dtype=float)*empty_symbol,
-                             where=points_per_bin != 0)
+    bin_variance: np.ndarray = np.divide(
+        aggregated_variance_per_bin,
+        points_per_bin,
+        out=np.ones(aggregated_variance_per_bin.shape, dtype=float)
+        * empty_symbol,
+        where=points_per_bin != 0,
+    )
 
     # the variance of the estimator
-    bin_estimator_variance = np.divide(bin_variance,
-                                       points_per_bin,
-                                       out=np.ones(aggregated_variance_per_bin.shape, dtype=float)*empty_symbol,
-                                       where=points_per_bin != 0)
+    bin_estimator_variance: np.ndarray = np.divide(
+        bin_variance,
+        points_per_bin,
+        out=np.ones(aggregated_variance_per_bin.shape, dtype=float)
+        * empty_symbol,
+        where=points_per_bin != 0,
+    )
     return bin_variance, bin_estimator_variance
 
 
-def fill_nans(bin_effect_mean):
+def fill_nans(bin_effect_mean: np.ndarray) -> np.ndarray:
     """Interpolate the bin_effects with Nan values.
 
     Parameters
@@ -208,9 +245,9 @@ def fill_nans(bin_effect_mean):
       The bin effects without NaNs
 
     """
-    bin_effect_1 = copy.deepcopy(bin_effect_mean)
+    bin_effect_1: np.ndarray = copy.deepcopy(bin_effect_mean)
 
-    def nan_helper(y):
+    def nan_helper(y: np.ndarray) -> tuple:
         return np.isnan(y), lambda z: z.nonzero()[0]
 
     nans, x = nan_helper(bin_effect_1)
@@ -218,7 +255,13 @@ def fill_nans(bin_effect_mean):
     return bin_effect_1
 
 
-def compute_accumulated_effect(x: np.ndarray, limits: np.ndarray, bin_effect: np.ndarray, dx: float, square=False):
+def compute_accumulated_effect(
+    x: np.ndarray,
+    limits: np.ndarray,
+    bin_effect: np.ndarray,
+    dx: float,
+    square: bool = False,
+) -> np.ndarray:
     """Compute the accumulated effect.
 
     Parameters
@@ -241,22 +284,22 @@ def compute_accumulated_effect(x: np.ndarray, limits: np.ndarray, bin_effect: np
     -----
     The function implements the following formula
 
-    .. math:: f(x) = dx * \sum_{i=0}^{k_x - 1} bin[i] + (x - limits[k_x-1])*bin[k_x]
+    .. math:: f(x) = dx * sum_{i=0}^{k_x - 1} bin[i] + (x - limits[k_x-1])*bin[k_x]
     """
-    big_m = 100000000000000.
+    big_m = 100000000000000.0
 
     # find where each point belongs to
     ind = np.digitize(x, limits)
 
     # find for each point, the accumulated full-bin effect
     if square:
-        x_cumsum = (bin_effect * dx ** 2).cumsum()
+        x_cumsum = (bin_effect * dx**2).cumsum()
         tmp = np.concatenate([[0, 0], x_cumsum])
-        full_bin_effect = tmp[ind] # * tmp2[ind] ** 2
+        full_bin_effect = tmp[ind]  # * tmp2[ind] ** 2
     else:
         x_cumsum = (bin_effect * dx).cumsum()
         tmp = np.concatenate([[0, 0], x_cumsum])
-        full_bin_effect = tmp[ind] # * tmp2[ind]
+        full_bin_effect = tmp[ind]  # * tmp2[ind]
 
     # find for each point, the remaining effect
     tmp = np.concatenate([[limits[0]], limits[:-1], [big_m]])
@@ -267,15 +310,15 @@ def compute_accumulated_effect(x: np.ndarray, limits: np.ndarray, bin_effect: np
     if square:
         deltas = deltas**2
 
-    tmp = np.concatenate([[0.], bin_effect, [bin_effect[-1]]])
+    tmp = np.concatenate([[0.0], bin_effect, [bin_effect[-1]]])
     remaining_effect = deltas * tmp[ind]
 
     # final effect
-    y = full_bin_effect + remaining_effect
+    y: np.ndarray = full_bin_effect + remaining_effect
     return y
 
 
-def find_first_nan_bin(x: np.ndarray):
+def find_first_nan_bin(x: np.ndarray) -> typing.Any | None:
     nans = np.where(np.isnan(x))[0]
 
     if nans.size == 0:
@@ -285,10 +328,10 @@ def find_first_nan_bin(x: np.ndarray):
     return first_empty_bin
 
 
-def compute_normalizer(limits: np.ndarray, bin_effect: np.ndarray, x):
+def compute_normalizer(
+    limits: np.ndarray, bin_effect: np.ndarray, x: np.ndarray, dx: float
+) -> np.ndarray:
     """Compute the feature effect normalizer.
-
-    # TODO do it with using the bin values instead of evaluating all points.
 
     Parameters
     ----------
@@ -306,7 +349,7 @@ def compute_normalizer(limits: np.ndarray, bin_effect: np.ndarray, x):
       The normalizer
 
     """
-    dx = np.array([limits[i + 1] - limits[i] for i in range(len(limits) - 1)])
+    # dx = np.array([limits[i + 1] - limits[i] for i in range(len(limits) - 1)])
     # eff_on_lims = compute_accumulated_effect((limits[:-1]+ limits[1:])/2, limits, bin_effect, dx)
     # z = np.sum(eff_on_lims[:-1]*(limits[1:] - limits[:-1]) + bin_effect/2 * ((limits[1:] - limits[:-1])**2))
     # x = np.linspace(limits[0], limits[-1], 10000)
@@ -314,30 +357,47 @@ def compute_normalizer(limits: np.ndarray, bin_effect: np.ndarray, x):
     return z
 
 
-def compute_loss(points_per_bin, bin_variance_nans, dx, min_points_per_bin):
+def compute_loss(
+    points_per_bin: np.ndarray,
+    bin_variance_nans: float,
+    dx: float,
+    min_points_per_bin: np.ndarray,
+) -> np.ndarray:
     if np.sum(points_per_bin < min_points_per_bin) > 0:
         error = np.NaN
     else:
-        discount_for_more_points = .2*(points_per_bin / np.sum(points_per_bin))
-        error_per_bin = bin_variance_nans * (1. - discount_for_more_points) * dx
+        discount_for_more_points = 0.2 * (
+            points_per_bin / np.sum(points_per_bin)
+        )
+        error_per_bin = (
+            bin_variance_nans * (1.0 - discount_for_more_points) * dx
+        )
         error = np.sqrt(np.sum(error_per_bin))
         # error_per_bin = np.sqrt(bin_variance_nans) * dx / np.sqrt(points_per_bin)
         # error = np.sum(error_per_bin)
     return error
 
 
-def compute_fe_parameters(data, data_effect, limits, min_points_per_bin):
-
+def compute_fe_parameters(
+    data: np.ndarray,
+    data_effect: np.ndarray,
+    limits: np.ndarray | tuple,
+    min_points_per_bin: np.ndarray,
+) -> dict:
     dx = np.array([limits[i + 1] - limits[i] for i in range(len(limits) - 1)])
 
     # compute mean effect on each bin
-    bin_effect_nans, points_per_bin = compute_bin_effect_mean(data, data_effect, limits)
+    bin_effect_nans, points_per_bin = compute_bin_effect_mean(
+        data, data_effect, limits
+    )
 
     # add empty bins
     is_bin_empty = np.isnan(bin_effect_nans)
 
     # compute effect variance in each bin
-    bin_variance_nans, bin_estimator_variance_nans = compute_bin_effect_variance(data, data_effect, limits, bin_effect_nans)
+    bin_variance_nans, bin_estimator_variance_nans = (
+        compute_bin_effect_variance(data, data_effect, limits, bin_effect_nans)
+    )
 
     # interpolate NaNs
     bin_effect = fill_nans(bin_effect_nans)
@@ -347,22 +407,24 @@ def compute_fe_parameters(data, data_effect, limits, min_points_per_bin):
     # first empty bin
     first_empty_bin = find_first_nan_bin(bin_effect_nans)
 
-    loss = compute_loss(points_per_bin, bin_variance_nans, dx, min_points_per_bin)
+    loss = compute_loss(
+        points_per_bin, bin_variance_nans, dx, min_points_per_bin
+    )
 
-    z = compute_normalizer(limits, bin_effect, data)
+    z = compute_normalizer(limits, bin_effect, data, dx)
 
-    parameters = {"nof_bins": limits.shape[0] - 1,
-                  "limits": limits,
-                  "dx": dx,
-                  "loss": loss,
-                  "points_per_bin": points_per_bin,
-                  "is_bin_empty": is_bin_empty,
-                  "bin_effect": bin_effect,
-                  "bin_variance": bin_variance,
-                  "bin_variance_nans": bin_variance_nans,
-                  "bin_estimator_variance": bin_estimator_variance,
-                  "z": z,
-                  "first_empty_bin": first_empty_bin}
+    parameters = {
+        "nof_bins": limits.shape[0] - 1,
+        "limits": limits,
+        "dx": dx,
+        "loss": loss,
+        "points_per_bin": points_per_bin,
+        "is_bin_empty": is_bin_empty,
+        "bin_effect": bin_effect,
+        "bin_variance": bin_variance,
+        "bin_variance_nans": bin_variance_nans,
+        "bin_estimator_variance": bin_estimator_variance,
+        "z": z,
+        "first_empty_bin": first_empty_bin,
+    }
     return parameters
-
-

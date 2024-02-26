@@ -63,4 +63,4 @@ Image(filename=filename)
 To extend and therefore patch additional explainability methods, just add a new patching function to the `features.explainability.monkey_patching` module. The patching function should be able to handle the new method. Just check the existing patching functions for reference. Pay extra attention to the `gorilla` package documentation to understand how to patch the new method and also keep in mind the different inputs and output that a dag node has.
 
 ## Notes
-Most of the explainability methods are coupled with the corresponding model prediction methods. Some patched model prediction functions need to be bypassed in order to omit additional unnecessary dag nodes being created. 
+Most of the explainability methods are coupled with the corresponding model prediction methods. Some patched model prediction functions need to be bypassed in order to omit additional unnecessary dag nodes being created.

@@ -1,6 +1,9 @@
 """
 Monkey patching for numpy
 """
+
+from typing import Any
+
 import numpy
 
 
@@ -10,7 +13,12 @@ class MlinspectNdarray(numpy.ndarray):
     See https://docs.scipy.org/doc/numpy-1.13.0/user/basics.subclassing.html
     """
 
-    def __new__(cls, input_array, _mlinspect_dag_node=None, _mlinspect_annotation=None):
+    def __new__(
+        cls,
+        input_array: Any,
+        _mlinspect_dag_node: int | None = None,
+        _mlinspect_annotation: Any | None = None,
+    ) -> Any:
         # Input array is an already formed ndarray instance
         # We first cast to be our class type
         obj = numpy.asarray(input_array).view(cls)
@@ -20,18 +28,24 @@ class MlinspectNdarray(numpy.ndarray):
         # Finally, we must return the newly created object:
         return obj
 
-    def __array_finalize__(self, obj):
+    def __array_finalize__(self, obj: numpy.ndarray | None) -> None:
         # pylint: disable=attribute-defined-outside-init
         # see InfoArray.__array_finalize__ for comments
         if obj is None:
             return
-        self._mlinspect_dag_node = getattr(obj, '_mlinspect_dag_node', None)
-        self._mlinspect_annotation = getattr(obj, '_mlinspect_annotation', None)
+        self._mlinspect_dag_node = getattr(obj, "_mlinspect_dag_node", None)
+        self._mlinspect_annotation = getattr(
+            obj, "_mlinspect_annotation", None
+        )
 
-    def ravel(self, order='C'):
+    def ravel(self, order: Any | None = "C") -> Any:
         # pylint: disable=no-member
         result = super().ravel(order)
         assert isinstance(result, MlinspectNdarray)
-        result._mlinspect_dag_node = self._mlinspect_dag_node  # pylint: disable=protected-access
-        result._mlinspect_annotation = self._mlinspect_annotation  # pylint: disable=protected-access
+        result._mlinspect_dag_node = (
+            self._mlinspect_dag_node
+        )  # pylint: disable=protected-access
+        result._mlinspect_annotation = (
+            self._mlinspect_annotation
+        )  # pylint: disable=protected-access
         return result

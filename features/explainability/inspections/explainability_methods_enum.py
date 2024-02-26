@@ -12,5 +12,5 @@ class ExplainabilityMethodsEnum(Enum):
     DALEX = "Descriptive Machine Learning Explanations"
 
     @classmethod
-    def _missing_(cls, value):
+    def _missing_(cls, value: object) -> None:
         raise Exception("Explainability method is not supported.")

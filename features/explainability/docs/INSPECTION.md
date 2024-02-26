@@ -21,7 +21,7 @@ The following methods/packages are available for inspection:
   - `Explainer` with `model_parts` and `predict_parts`
 
 ## Implementation
-The explainability methods have been implemented in an inspection that is named `Explainer`. The inspection is capable to calculate the explainability metrics for the given methods after the model fitting. It then uses the model prediction to calculate the explainability metrics. Then, one can just check the results of the explainability methods by using the `inspector_result` object. 
+The explainability methods have been implemented in an inspection that is named `Explainer`. The inspection is capable to calculate the explainability metrics for the given methods after the model fitting. It then uses the model prediction to calculate the explainability metrics. Then, one can just check the results of the explainability methods by using the `inspector_result` object.
 
 ## How to use
 Just add the desired inspection `Explainer` to the `PipelineInspector` object and execute the pipeline. The results will be available in the `inspector_result` object.

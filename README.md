@@ -23,15 +23,15 @@ Prerequisite: Python 3.9
 
     `Linux: ` `apt-get install graphviz` <br>
     `MAC OS: ` `brew install graphviz` <br>
-	
-4. Install pip dependencies 
+
+4. Install pip dependencies
 
     `SETUPTOOLS_USE_DISTUTILS=stdlib pip install -e .[dev]` <br>
 
 5. To ensure everything works, you can run the tests (without graphviz, the visualisation test will fail)
 
     `python setup.py test` <br>
-    
+
 ## How to use mlinspect
 mlinspect makes it easy to analyze your pipeline and automatically check for common issues.
 ```python

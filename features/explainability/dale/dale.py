@@ -1,11 +1,17 @@
 import typing
-from . import utils
-from . import visualization as vis
-from . import bin_estimation as be
+
 import numpy as np
 
+from . import bin_estimation as be, utils, visualization as vis
 
-def compute_dale_parameters(data: np.ndarray, data_effect: np.ndarray, feature: int, method: str, alg_params: typing.Dict) -> typing.Dict:
+
+def compute_dale_parameters(
+    data: np.ndarray,
+    data_effect: np.ndarray,
+    feature: int,
+    method: str,
+    alg_params: typing.Dict,
+) -> typing.Dict:
     """Compute the DALE dale_params for a single feature.
 
     Performs all actions to compute the dale_params that are required for
@@ -35,20 +41,37 @@ def compute_dale_parameters(data: np.ndarray, data_effect: np.ndarray, feature: 
     if method == "fixed-size":
         # alg params
         K = alg_params["nof_bins"] if "nof_bins" in alg_params.keys() else 30
-        min_points_per_bin = alg_params["min_points_per_bin"] if "min_points_per_bin" in alg_params.keys() else 10
+        min_points_per_bin = (
+            alg_params["min_points_per_bin"]
+            if "min_points_per_bin" in alg_params.keys()
+            else 10
+        )
 
         # estimate bins
         limits = utils.create_fix_size_bins(data[:, feature], K)
 
         # compute dale params
-        dale_params = utils.compute_fe_parameters(data[:, feature], data_effect[:, feature], limits, min_points_per_bin)
+        dale_params = utils.compute_fe_parameters(
+            data[:, feature],
+            data_effect[:, feature],
+            limits,
+            min_points_per_bin,
+        )
         dale_params["method"] = method
         dale_params["min_points_per_bin"] = min_points_per_bin
         dale_params["nof_bins"] = K
     elif method == "variable-size":
         # alg params
-        K = alg_params["max_nof_bins"] if "max_nof_bins" in alg_params.keys() else 30
-        min_points_per_bin = alg_params["min_points_per_bin"] if "min_points_per_bin" in alg_params.keys() else 10
+        K = (
+            alg_params["max_nof_bins"]
+            if "max_nof_bins" in alg_params.keys()
+            else 30
+        )
+        min_points_per_bin = (
+            alg_params["min_points_per_bin"]
+            if "min_points_per_bin" in alg_params.keys()
+            else 10
+        )
 
         # estimate bins
         if "limits" in alg_params.keys():
@@ -58,7 +81,12 @@ def compute_dale_parameters(data: np.ndarray, data_effect: np.ndarray, feature: 
             limits = bin_estimator.solve_dp(min_points_per_bin)
 
         # compute dale parameters
-        dale_params = utils.compute_fe_parameters(data[:, feature], data_effect[:, feature], limits, min_points_per_bin)
+        dale_params = utils.compute_fe_parameters(
+            data[:, feature],
+            data_effect[:, feature],
+            limits,
+            min_points_per_bin,
+        )
         if "limits" not in alg_params.keys():
             dale_params["bin_estimator"] = bin_estimator
 
@@ -69,7 +97,12 @@ def compute_dale_parameters(data: np.ndarray, data_effect: np.ndarray, feature: 
 
 
 class DALE:
-    def __init__(self, data: np.ndarray, model: typing.Callable, model_jac: typing.Union[typing.Callable, None] = None):
+    def __init__(
+        self,
+        data: np.ndarray,
+        model: typing.Callable,
+        model_jac: typing.Union[typing.Callable, None] = None,
+    ):
         self.data = data
         self.model = model
         self.model_jac = model_jac
@@ -79,7 +112,7 @@ class DALE:
         self.dale_params = None
 
     @staticmethod
-    def _dale_func(params):
+    def _dale_func(params: dict) -> typing.Callable:
         """Returns the DALE function on for the s-th feature.
 
         Parameters
@@ -92,32 +125,49 @@ class DALE:
         dale_function: Callable
           The dale_function on the s-th feature
         """
-        def dale_function(x):
-            y = utils.compute_accumulated_effect(x, limits=params["limits"], bin_effect=params["bin_effect"],
-                                                 dx=params["dx"])
-            y -= params["z"]
-            estimator_var = utils.compute_accumulated_effect(x,
-                                                   limits=params["limits"],
-                                                   bin_effect=params["bin_estimator_variance"],
-                                                   dx=params["dx"],
-                                                   square=True)
 
-            var = utils.compute_accumulated_effect(x,
-                                                   limits=params["limits"],
-                                                   bin_effect=params["bin_variance"],
-                                                   dx=params["dx"],
-                                                   square=True)
+        def dale_function(x):
+            y = utils.compute_accumulated_effect(
+                x,
+                limits=params["limits"],
+                bin_effect=params["bin_effect"],
+                dx=params["dx"],
+            )
+            y -= params["z"]
+            estimator_var = utils.compute_accumulated_effect(
+                x,
+                limits=params["limits"],
+                bin_effect=params["bin_estimator_variance"],
+                dx=params["dx"],
+                square=True,
+            )
+
+            var = utils.compute_accumulated_effect(
+                x,
+                limits=params["limits"],
+                bin_effect=params["bin_variance"],
+                dx=params["dx"],
+                square=True,
+            )
             return y, estimator_var, var
+
         return dale_function
 
-    def compile(self):
+    def compile(self) -> None:
         if self.model_jac is not None:
             self.data_effect = self.model_jac(self.data)
         else:
             # TODO add numerical approximation
             pass
 
-    def fit(self, features: typing.Union[str, list] = "all", method="fixed-size", alg_params={}):
+    def fit(
+        self,
+        features: typing.Union[str, list] = "all",
+        method="fixed-size",
+        alg_params=None,
+    ):
+        if alg_params is None:
+            alg_params = {}
         assert method in ["fixed-size", "variable-size"]
         assert features == "all" or type(features) == list
 
@@ -131,8 +181,12 @@ class DALE:
         funcs = {}
         dale_params = {}
         for s in features:
-            dale_params["feature_" + str(s)] = compute_dale_parameters(self.data, self.data_effect, s, method, alg_params)
-            funcs["feature_" + str(s)] = self._dale_func(dale_params["feature_" + str(s)])
+            dale_params["feature_" + str(s)] = compute_dale_parameters(
+                self.data, self.data_effect, s, method, alg_params
+            )
+            funcs["feature_" + str(s)] = self._dale_func(
+                dale_params["feature_" + str(s)]
+            )
 
         # TODO change it to append, instead of overwriting
         self.feature_effect = funcs
@@ -141,18 +195,30 @@ class DALE:
     def eval(self, x: np.ndarray, s: int):
         return self.feature_effect["feature_" + str(s)](x)
 
-    def plot(self, s: int = 0, error="standard error", block=False, gt=None, gt_bins=None, savefig=False):
+    def plot(
+        self,
+        s: int = 0,
+        error="standard error",
+        block=False,
+        gt=None,
+        gt_bins=None,
+        savefig=False,
+    ):
         title = "DALE: Effect of feature %d" % (s + 1)
-        vis.feature_effect_plot(self.dale_params["feature_"+str(s)],
-                                self.eval,
-                                s,
-                                error=error,
-                                min_points_per_bin=self.dale_params["feature_"+str(s)]["min_points_per_bin"],
-                                title=title,
-                                block=block,
-                                gt=gt,
-                                gt_bins=gt_bins,
-                                savefig=savefig)
+        vis.feature_effect_plot(
+            self.dale_params["feature_" + str(s)],
+            self.eval,
+            s,
+            error=error,
+            min_points_per_bin=self.dale_params["feature_" + str(s)][
+                "min_points_per_bin"
+            ],
+            title=title,
+            block=block,
+            gt=gt,
+            gt_bins=gt_bins,
+            savefig=savefig,
+        )
 
     def plot_local_effects(self, s: int = 0, limits=True, block=False):
         xs = self.data[:, s]

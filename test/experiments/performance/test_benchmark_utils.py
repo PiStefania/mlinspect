@@ -2,11 +2,16 @@
 Tests whether the benchmark utils work
 """
 
-from experiments.performance._benchmark_utils import do_op_instrumentation_benchmarks, OperatorBenchmarkType, \
-    do_op_inspections_benchmarks, do_full_pipeline_benchmarks, PipelineBenchmarkType
+from experiments.performance._benchmark_utils import (
+    OperatorBenchmarkType,
+    PipelineBenchmarkType,
+    do_full_pipeline_benchmarks,
+    do_op_inspections_benchmarks,
+    do_op_instrumentation_benchmarks,
+)
 
 
-def test_instrumentation_benchmarks():
+def test_instrumentation_benchmarks() -> None:
     """
     Tests whether the pipeline works with instrumentation
     """
@@ -20,7 +25,7 @@ def test_instrumentation_benchmarks():
         assert benchmark_results["three inspections"]
 
 
-def test_inspection_benchmarks():
+def test_inspection_benchmarks() -> None:
     """
     Tests whether the pipeline works with instrumentation
     """
@@ -31,10 +36,12 @@ def test_inspection_benchmarks():
         assert benchmark_results["MaterializeFirstOutputRows(10)"]
         assert benchmark_results["RowLineage(10)"]
         assert benchmark_results["HistogramForColumns(['group_col_1'])"]
-        assert benchmark_results["HistogramForColumns(['group_col_1', 'group_col_2', 'group_col_3'])"]
+        assert benchmark_results[
+            "HistogramForColumns(['group_col_1', 'group_col_2', 'group_col_3'])"
+        ]
 
 
-def test_full_pipeline_benchmarks():
+def test_full_pipeline_benchmarks() -> None:
     """
     Tests whether the pipeline works with instrumentation
     """

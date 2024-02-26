@@ -1,14 +1,16 @@
 import numpy as np
+from numpy import ndarray
+
 from . import utils
 
 
 class BinEstimatorDP:
-    def __init__(self, data, data_effect, feature, K):
+    def __init__(self, data, data_effect, feature, K) -> None:
         self.x_min = np.min(data[:, feature])
         self.x_max = np.max(data[:, feature])
         self.K = K
         self.dx = (self.x_max - self.x_min) / K
-        self.big_M = 1.e+10
+        self.big_M = 1.0e10
         self.data = data
         self.nof_points = data.shape[0]
         self.data_effect = data_effect
@@ -19,30 +21,36 @@ class BinEstimatorDP:
         self.matrix = None
         self.argmatrix = None
 
-    def _cost_of_bin(self, start, stop, min_points):
+    def _cost_of_bin(self, start, stop, min_points) -> float | int:
         data = self.data[:, self.feature]
         data_effect = self.data_effect[:, self.feature]
-        data, data_effect = utils.filter_points_belong_to_bin(data,
-                                                              data_effect,
-                                                              np.array([start, stop]))
+        data, data_effect = utils.filter_points_belong_to_bin(
+            data, data_effect, np.array([start, stop])
+        )
 
-        big_cost = 1e+10
+        big_cost = 1e10
 
         # compute cost
         if data_effect.size < min_points:
             cost = big_cost
         else:
             # cost = np.std(data_effect) * (stop-start) / np.sqrt(data_effect.size)
-            discount_for_more_points = (1 - .3*(data_effect.size / self.nof_points))
-            cost = np.var(data_effect) * (stop-start) * discount_for_more_points
+            discount_for_more_points = 1 - 0.3 * (
+                data_effect.size / self.nof_points
+            )
+            cost = (
+                np.var(data_effect) * (stop - start) * discount_for_more_points
+            )
         return cost
 
-    def _index_to_position(self, index_start, index_stop):
+    def _index_to_position(
+        self, index_start, index_stop
+    ) -> tuple[None | int | float | complex, None | int | float | complex]:
         start = self.x_min + index_start * self.dx
         stop = self.x_min + index_stop * self.dx
         return start, stop
 
-    def _cost_of_move(self, index_before, index_next, min_points):
+    def _cost_of_move(self, index_before, index_next, min_points) -> float:
         """Compute the cost of move.
 
         Computes the cost for moving from the index of the previous bin (index_before)
@@ -60,7 +68,9 @@ class BinEstimatorDP:
 
         return cost
 
-    def _argmatrix_to_limits(self):
+    def _argmatrix_to_limits(
+        self,
+    ) -> tuple[None | int | float | complex, ndarray]:
         assert self.argmatrix is not None
         argmatrix = self.argmatrix
         dx = self.dx
@@ -83,10 +93,12 @@ class BinEstimatorDP:
                 before = lim
 
         limits = x_min + np.array(lim_indices_1) * dx
-        dx_list = np.array([limits[i+1] - limits[i] for i in range(limits.shape[0]-1)])
+        dx_list = np.array(
+            [limits[i + 1] - limits[i] for i in range(limits.shape[0] - 1)]
+        )
         return limits, dx_list
 
-    def solve_dp(self, min_points):
+    def solve_dp(self, min_points) -> ndarray | None | int | float | complex:
         K = self.K
         big_M = self.big_M
         nof_limits = K + 1
@@ -103,7 +115,9 @@ class BinEstimatorDP:
             # init first bin_index
             bin_index = 0
             for lim_index in range(nof_limits):
-                matrix[lim_index, bin_index] = self._cost_of_move(bin_index, lim_index, min_points)
+                matrix[lim_index, bin_index] = self._cost_of_move(
+                    bin_index, lim_index, min_points
+                )
 
             # for all other bins
             for bin_index in range(1, K):
@@ -112,7 +126,12 @@ class BinEstimatorDP:
                     # find best solution
                     tmp = []
                     for lim_index_before in range(K + 1):
-                        tmp.append(matrix[lim_index_before, bin_index - 1] + self._cost_of_move(lim_index_before, lim_index_next, min_points))
+                        tmp.append(
+                            matrix[lim_index_before, bin_index - 1]
+                            + self._cost_of_move(
+                                lim_index_before, lim_index_next, min_points
+                            )
+                        )
 
                     # store best solution
                     matrix[lim_index_next, bin_index] = np.min(tmp)
