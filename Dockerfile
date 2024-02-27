@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.9.16
+ARG PYTHON_VERSION=3.10.13
 
 FROM python:${PYTHON_VERSION}-slim-bullseye as base
 
