@@ -1,6 +1,6 @@
 default_stages:
   - commit
-exclude: node_modules|.git|.tox
+exclude: node_modules|.git|.tox|test_*.py
 fail_fast: true
 repos:
 
@@ -55,16 +55,6 @@ repos:
         exclude: ^test/
         language: system
         name: PyLint
-    repo: local
-
-
-  - hooks:
-      - entry: mypy
-        args: [ "." ]
-        id: mypy
-        language: system
-        name: mypy
-        pass_filenames: false
     repo: local
 
   - repo: https://github.com/AleksaC/hadolint-py

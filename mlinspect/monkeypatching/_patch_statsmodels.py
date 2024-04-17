@@ -36,7 +36,7 @@ class StatsmodelApiPatching:
 
     @gorilla.name("add_constant")
     @gorilla.settings(allow_hit=True)
-    def patched_random(self, *args: Any, **kwargs: Any) -> Any:
+    def patched_random(*args: Any, **kwargs: Any) -> Any:
         """Patch for ('statsmodel.api', 'add_constant')"""
         # pylint: disable=no-method-argument
         original = gorilla.get_original_attribute(api, "add_constant")
@@ -97,7 +97,7 @@ class StatsmodelsDatasetPatching:
 
     @gorilla.name("get_rdataset")
     @gorilla.settings(allow_hit=True)
-    def patched_read_csv(self, *args: Any, **kwargs: Any) -> Any:
+    def patched_read_csv(*args: Any, **kwargs: Any) -> Any:
         """Patch for ('statsmodels.datasets', 'get_rdataset')"""
         # pylint: disable=no-method-argument
         original = gorilla.get_original_attribute(datasets, "get_rdataset")

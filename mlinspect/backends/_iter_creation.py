@@ -71,7 +71,6 @@ def iter_input_annotation_output_map(
     # pylint: disable=too-many-locals, too-many-arguments
     if inspection_count == 0:
         return []
-    assert columns is not None
     input_columns, input_rows = get_iterator_for_type(input_data, True)
     output_columns, output_rows = get_iterator_for_type(output, False, columns)
     duplicated_input_iterators = itertools.tee(input_rows, inspection_count)

@@ -111,7 +111,7 @@ def test_get_rdataset() -> None:
         """
         import statsmodels.api as sm
 
-        dat = sm.datasets.get_rdataset("Guerry", "HistData").data
+        dat = sm.datasets.get_rdataset(dataname="Guerry", package="HistData").data
         assert len(dat) == 86
         """
     )
@@ -159,8 +159,8 @@ def test_get_rdataset() -> None:
             ],
         ),
         OptionalCodeInfo(
-            CodeReference(3, 6, 3, 52),
-            """sm.datasets.get_rdataset("Guerry", "HistData")""",
+            CodeReference(3, 6, 3, 69),
+            """sm.datasets.get_rdataset(dataname="Guerry", package="HistData")""",
         ),
     )
     compare(extracted_node, expected_node)

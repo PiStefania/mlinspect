@@ -26,10 +26,10 @@ def test_numpy_random() -> None:
     """
     test_code = cleandoc(
         """
-        import numpy as np
-        np.random.seed(42)
-        test = np.random.random(100)
-        assert len(test) == 100
+            import numpy as np
+            np.random.seed(42)
+            test = np.random.random(100)
+            assert len(test) == 100
         """
     )
 

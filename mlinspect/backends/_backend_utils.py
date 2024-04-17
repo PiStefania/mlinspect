@@ -138,7 +138,7 @@ def create_wrapper_with_annotations(
     elif isinstance(return_value, Explanation):
         return_value = MlinspectNdarray(return_value)
         new_return_value = AnnotatedDfObject(return_value, annotations_df)
-    elif isinstance(return_value, tuple):
+    elif isinstance(return_value, (tuple, list)):
         return_value = MlinspectNdarray(return_value)
         new_return_value = AnnotatedDfObject(return_value, annotations_df)
     elif isinstance(return_value, MlinspectNdarray):

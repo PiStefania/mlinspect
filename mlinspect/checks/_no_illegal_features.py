@@ -7,11 +7,11 @@ from __future__ import annotations
 import dataclasses
 from typing import Any, Iterable, List
 
-from mlinspect import DagNode
 from mlinspect.checks._check import Check, CheckResult, CheckStatus
 from mlinspect.inspections._inspection import Inspection
 from mlinspect.inspections._inspection_input import OperatorType
 from mlinspect.inspections._inspection_result import InspectionResult
+from mlinspect.instrumentation._dag_node import DagNode
 
 ILLEGAL_FEATURES = {"race", "gender", "age"}
 

@@ -272,8 +272,10 @@ def test_instrument_pipeline_with_code_reference_tracking() -> None:
     parsed_modified_ast = singleton.instrument_pipeline(parsed_ast, True)
     instrumented_code = astunparse.unparse(parsed_modified_ast)
     expected_code = cleandoc(
-        """from mlinspect.instrumentation._pipeline_executor import set_code_reference_call,
-        set_code_reference_subscript, monkey_patch, undo_monkey_patch monkey_patch() import pandas as pd
+        """
+            from mlinspect.instrumentation._pipeline_executor import set_code_reference_call, set_code_reference_subscript, monkey_patch, undo_monkey_patch
+            monkey_patch()
+            import pandas as pd
 
             def black_box_df_op():
                 df = pd.DataFrame([0, 1], **set_code_reference_call(4, 9, 4, 44, columns=['A']))
@@ -296,8 +298,10 @@ def test_instrument_pipeline_without_code_reference_tracking() -> None:
     parsed_modified_ast = singleton.instrument_pipeline(parsed_ast, False)
     instrumented_code = astunparse.unparse(parsed_modified_ast)
     expected_code = cleandoc(
-        """from mlinspect.instrumentation._pipeline_executor import set_code_reference_call,
-        set_code_reference_subscript, monkey_patch, undo_monkey_patch monkey_patch() import pandas as pd
+        """
+            from mlinspect.instrumentation._pipeline_executor import set_code_reference_call, set_code_reference_subscript, monkey_patch, undo_monkey_patch
+            monkey_patch()
+            import pandas as pd
 
             def black_box_df_op():
                 df = pd.DataFrame([0, 1], columns=['A'])

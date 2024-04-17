@@ -82,7 +82,7 @@ def get_expected_dag_adult_easy(
         ),
         OptionalCodeInfo(
             CodeReference(19 + line_offset, 11, 19 + line_offset, 62),
-            "pd.read_csv(train_file, na_values='?', index_col=0)",
+            'pd.read_csv(train_file, na_values="?", index_col=0)',
         ),
     )
     expected_graph.add_node(expected_data_source)
@@ -121,15 +121,15 @@ def get_expected_dag_adult_easy(
     expected_graph.add_edge(expected_data_source, expected_select)
 
     pipeline_str = (
-        "compose.ColumnTransformer(transformers=[\n"
-        "    ('categorical', preprocessing.OneHotEncoder(handle_unknown='ignore'), "
-        "['education', 'workclass']),\n"
-        "    ('numeric', preprocessing.StandardScaler(), ['age', 'hours-per-week'])\n"
-        "])"
+        "compose.ColumnTransformer(\n    transformers=[\n        "
+        '(\n            "categorical",\n            preprocessing.OneHotEncoder(handle_unknown="ignore"),'
+        '\n            ["education", "workclass"],\n        ),\n        '
+        '("numeric", preprocessing.StandardScaler(), ["age", "hours-per-week"]),\n    '
+        "]\n)"
     )
     expected_pipeline_project_one = DagNode(
         4,
-        BasicCodeLocation(caller_filename, 18 + line_offset),
+        BasicCodeLocation(caller_filename, 27 + line_offset),
         OperatorContext(
             OperatorType.PROJECTION,
             FunctionInfo(
@@ -140,14 +140,14 @@ def get_expected_dag_adult_easy(
             "to ['education', 'workclass']", ["education", "workclass"]
         ),
         OptionalCodeInfo(
-            CodeReference(18 + line_offset, 25, 21 + line_offset, 2),
+            CodeReference(27 + line_offset, 25, 36 + line_offset, 1),
             pipeline_str,
         ),
     )
     expected_graph.add_edge(expected_select, expected_pipeline_project_one)
     expected_pipeline_project_two = DagNode(
         6,
-        BasicCodeLocation(caller_filename, 18 + line_offset),
+        BasicCodeLocation(caller_filename, 27 + line_offset),
         OperatorContext(
             OperatorType.PROJECTION,
             FunctionInfo(
@@ -158,7 +158,7 @@ def get_expected_dag_adult_easy(
             "to ['age', 'hours-per-week']", ["age", "hours-per-week"]
         ),
         OptionalCodeInfo(
-            CodeReference(18 + line_offset, 25, 21 + line_offset, 2),
+            CodeReference(27 + line_offset, 25, 36 + line_offset, 1),
             pipeline_str,
         ),
     )
@@ -166,27 +166,27 @@ def get_expected_dag_adult_easy(
 
     expected_pipeline_transformer_one = DagNode(
         5,
-        BasicCodeLocation(caller_filename, 19 + line_offset),
+        BasicCodeLocation(caller_filename, 31 + line_offset),
         OperatorContext(
             OperatorType.TRANSFORMER,
             FunctionInfo("sklearn.preprocessing._encoders", "OneHotEncoder"),
         ),
         DagNodeDetails("One-Hot Encoder: fit_transform", ["array"]),
         OptionalCodeInfo(
-            CodeReference(19 + line_offset, 20, 19 + line_offset, 72),
-            "preprocessing.OneHotEncoder(handle_unknown='ignore')",
+            CodeReference(31 + line_offset, 12, 31 + line_offset, 64),
+            'preprocessing.OneHotEncoder(handle_unknown="ignore")',
         ),
     )
     expected_pipeline_transformer_two = DagNode(
         7,
-        BasicCodeLocation(caller_filename, 20 + line_offset),
+        BasicCodeLocation(caller_filename, 34 + line_offset),
         OperatorContext(
             OperatorType.TRANSFORMER,
             FunctionInfo("sklearn.preprocessing._data", "StandardScaler"),
         ),
         DagNodeDetails("Standard Scaler: fit_transform", ["array"]),
         OptionalCodeInfo(
-            CodeReference(20 + line_offset, 16, 20 + line_offset, 46),
+            CodeReference(34 + line_offset, 20, 34 + line_offset, 50),
             "preprocessing.StandardScaler()",
         ),
     )
@@ -199,7 +199,7 @@ def get_expected_dag_adult_easy(
 
     expected_pipeline_concatenation = DagNode(
         8,
-        BasicCodeLocation(caller_filename, 18 + line_offset),
+        BasicCodeLocation(caller_filename, 27 + line_offset),
         OperatorContext(
             OperatorType.CONCATENATION,
             FunctionInfo(
@@ -208,7 +208,7 @@ def get_expected_dag_adult_easy(
         ),
         DagNodeDetails(None, ["array"]),
         OptionalCodeInfo(
-            CodeReference(18 + line_offset, 25, 21 + line_offset, 2),
+            CodeReference(27 + line_offset, 25, 36 + line_offset, 1),
             pipeline_str,
         ),
     )
@@ -221,14 +221,14 @@ def get_expected_dag_adult_easy(
 
     expected_train_data = DagNode(
         9,
-        BasicCodeLocation(caller_filename, 26 + line_offset),
+        BasicCodeLocation(caller_filename, 42 + line_offset),
         OperatorContext(
             OperatorType.TRAIN_DATA,
             FunctionInfo("sklearn.tree._classes", "DecisionTreeClassifier"),
         ),
         DagNodeDetails(None, ["array"]),
         OptionalCodeInfo(
-            CodeReference(26 + line_offset, 19, 26 + line_offset, 48),
+            CodeReference(42 + line_offset, 23, 42 + line_offset, 52),
             "tree.DecisionTreeClassifier()",
         ),
     )
@@ -238,22 +238,22 @@ def get_expected_dag_adult_easy(
 
     expected_project = DagNode(
         2,
-        BasicCodeLocation(caller_filename, 16 + line_offset),
+        BasicCodeLocation(caller_filename, 24 + line_offset),
         OperatorContext(
             OperatorType.PROJECTION,
             FunctionInfo("pandas.core.frame", "__getitem__"),
         ),
         DagNodeDetails("to ['income-per-year']", ["income-per-year"]),
         OptionalCodeInfo(
-            CodeReference(16 + line_offset, 38, 16 + line_offset, 61),
-            "data['income-per-year']",
+            CodeReference(24 + line_offset, 4, 24 + line_offset, 27),
+            'data["income-per-year"]',
         ),
     )
     expected_graph.add_edge(expected_select, expected_project)
 
     expected_project_modify = DagNode(
         3,
-        BasicCodeLocation(caller_filename, 16 + line_offset),
+        BasicCodeLocation(caller_filename, 23 + line_offset),
         OperatorContext(
             OperatorType.PROJECTION_MODIFY,
             FunctionInfo("sklearn.preprocessing._label", "label_binarize"),
@@ -262,9 +262,9 @@ def get_expected_dag_adult_easy(
             "label_binarize, classes: ['>50K', '<=50K']", ["array"]
         ),
         OptionalCodeInfo(
-            CodeReference(16 + line_offset, 9, 16 + line_offset, 89),
-            "preprocessing.label_binarize(data['income-per-year'], "
-            "classes=['>50K', '<=50K'])",
+            CodeReference(23 + line_offset, 9, 25 + line_offset, 1),
+            'preprocessing.label_binarize(\n    data["income-per-year"], '
+            'classes=[">50K", "<=50K"]\n)',
         ),
     )
     expected_graph.add_edge(expected_project, expected_project_modify)
@@ -278,7 +278,7 @@ def get_expected_dag_adult_easy(
         ),
         DagNodeDetails(None, ["array"]),
         OptionalCodeInfo(
-            CodeReference(42 + line_offset, 19, 42 + line_offset, 52),
+            CodeReference(42 + line_offset, 23, 42 + line_offset, 52),
             "tree.DecisionTreeClassifier()",
         ),
     )
@@ -286,14 +286,14 @@ def get_expected_dag_adult_easy(
 
     expected_estimator = DagNode(
         11,
-        BasicCodeLocation(caller_filename, 26 + line_offset),
+        BasicCodeLocation(caller_filename, 42 + line_offset),
         OperatorContext(
             OperatorType.ESTIMATOR,
             FunctionInfo("sklearn.tree._classes", "DecisionTreeClassifier"),
         ),
         DagNodeDetails("Decision Tree", []),
         OptionalCodeInfo(
-            CodeReference(26 + line_offset, 19, 26 + line_offset, 48),
+            CodeReference(42 + line_offset, 23, 42 + line_offset, 52),
             "tree.DecisionTreeClassifier()",
         ),
     )

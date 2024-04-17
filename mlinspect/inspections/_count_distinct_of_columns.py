@@ -58,10 +58,9 @@ class CountDistinctOfColumns(Inspection):
                             column_name
                         )
                     )
-                    if column_index:
-                        present_columns_index.append(column_index)
-                        self._present_column_names.append(column_name)
-                        self._distinct_value_sets.append(set())
+                    present_columns_index.append(column_index)
+                    self._present_column_names.append(column_name)
+                    self._distinct_value_sets.append(set())
             for row_sink in inspection_input.row_iterator:
                 for present_column_index, column_index in enumerate(
                     present_columns_index

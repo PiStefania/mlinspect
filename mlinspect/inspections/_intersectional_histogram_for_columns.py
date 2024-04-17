@@ -59,8 +59,7 @@ class IntersectionalHistogramForColumns(Inspection):
                 column_index = (
                     inspection_input.input_columns.get_index_of_column(column)
                 )
-                if column_index:
-                    sensitive_columns_index.append(column_index)
+                sensitive_columns_index.append(column_index)
             if (
                 inspection_input.operator_context.function_info
                 == FunctionInfo("sklearn.impute._base", "SimpleImputer")
@@ -103,8 +102,7 @@ class IntersectionalHistogramForColumns(Inspection):
                 column_index = (
                     inspection_input.output_columns.get_index_of_column(column)
                 )
-                if column_index:
-                    sensitive_columns_index.append(column_index)
+                sensitive_columns_index.append(column_index)
             for row_data_source in inspection_input.row_iterator:
                 current_count += 1
                 column_values = []
@@ -129,8 +127,7 @@ class IntersectionalHistogramForColumns(Inspection):
                 column_index = (
                     inspection_input.output_columns.get_index_of_column(column)
                 )
-                if column_index:
-                    sensitive_columns_index.append(column_index)
+                sensitive_columns_index.append(column_index)
             for row_nary in inspection_input.row_iterator:
                 current_count += 1
                 column_values = []

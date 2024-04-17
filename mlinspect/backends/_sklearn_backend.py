@@ -43,7 +43,7 @@ class SklearnBackend(Backend):
         self,
         operator_context: OperatorContext,
         input_infos: List[AnnotatedDfObject],
-        return_value: Any,
+        return_value: Any | None,
         non_data_function_args: MappingProxyType | Any = MappingProxyType({}),
     ) -> BackendResult:
         """The return value of some function"""
@@ -99,10 +99,12 @@ class SklearnBackend(Backend):
                 non_data_function_args,
             )
         elif operator_context.operator == OperatorType.ESTIMATOR:
-            return_value_be = execute_inspection_visits_nary_op(
+            return_value_be = execute_inspection_visits_sink_op(
                 operator_context,
-                input_infos,
-                return_value,
+                input_infos[0].result_data,
+                input_infos[0].result_annotation,
+                input_infos[1].result_data,
+                input_infos[1].result_annotation,
                 non_data_function_args,
             )
         elif operator_context.operator == OperatorType.SCORE:

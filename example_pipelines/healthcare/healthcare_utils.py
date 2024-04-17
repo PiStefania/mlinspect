@@ -6,11 +6,11 @@ from typing import Any, Callable
 
 import numpy as np
 from gensim import models
+from keras.layers import Dense
+from keras.models import Sequential
+from keras.optimizers import SGD
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.exceptions import NotFittedError
-from tensorflow.python.keras.layers import Dense
-from tensorflow.python.keras.models import Sequential
-from tensorflow.python.keras.optimizer_v2 import gradient_descent
 from typing_extensions import Self
 
 
@@ -237,7 +237,7 @@ def create_model() -> Sequential:
     clf.add(Dense(1, activation="softmax"))
     clf.compile(
         loss="categorical_crossentropy",
-        optimizer=gradient_descent.SGD(),
+        optimizer=SGD(),
         metrics=["accuracy"],
     )
     return clf
@@ -251,7 +251,7 @@ def create_model_with_input(input_dim: int = 10) -> Sequential:
     clf.add(Dense(2, activation="softmax"))
     clf.compile(
         loss="categorical_crossentropy",
-        optimizer=gradient_descent.SGD(),
+        optimizer=SGD(),
         metrics=["accuracy"],
     )
     return clf
@@ -265,7 +265,7 @@ def create_model_predict() -> Sequential:
     clf.add(Dense(1, activation="sigmoid"))
     clf.compile(
         loss="binary_crossentropy",
-        optimizer=gradient_descent.SGD(),
+        optimizer=SGD(),
         metrics=["accuracy"],
     )
     return clf

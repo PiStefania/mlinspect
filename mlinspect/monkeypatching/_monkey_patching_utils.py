@@ -8,7 +8,7 @@ import sys
 import warnings
 from typing import Any, List
 
-import numpy
+import numpy as np
 from pandas import DataFrame, Series
 from scipy.sparse import csr_matrix
 
@@ -70,11 +70,9 @@ def execute_patched_func(
             end_lineno=singleton.end_lineno_next_call_or_subscript,
             end_col_offset=singleton.end_col_offset_next_call_or_subscript,
         )
-        caller_source_code = None
-        if singleton.source_code:
-            caller_source_code = ast.get_source_segment(
-                singleton.source_code, node=call_ast_node
-            )
+        caller_source_code = ast.get_source_segment(
+            singleton.source_code, node=call_ast_node
+        )
         caller_lineno = singleton.lineno_next_call_or_subscript
         op_id = singleton.get_next_op_id()
         caller_code_reference = CodeReference(
@@ -124,11 +122,9 @@ def execute_patched_func_no_op_id(
             end_lineno=singleton.end_lineno_next_call_or_subscript,
             end_col_offset=singleton.end_col_offset_next_call_or_subscript,
         )
-        caller_source_code = None
-        if singleton.source_code:
-            caller_source_code = ast.get_source_segment(
-                singleton.source_code, node=call_ast_node
-            )
+        caller_source_code = ast.get_source_segment(
+            singleton.source_code, node=call_ast_node
+        )
         caller_lineno = singleton.lineno_next_call_or_subscript
         caller_code_reference = CodeReference(
             singleton.lineno_next_call_or_subscript,
@@ -179,11 +175,9 @@ def execute_patched_func_indirect_allowed(
             end_lineno=singleton.end_lineno_next_call_or_subscript,
             end_col_offset=singleton.end_col_offset_next_call_or_subscript,
         )
-        caller_source_code = None
-        if singleton.source_code:
-            caller_source_code = ast.get_source_segment(
-                singleton.source_code, node=call_ast_node
-            )
+        caller_source_code = ast.get_source_segment(
+            singleton.source_code, node=call_ast_node
+        )
         caller_lineno = singleton.lineno_next_call_or_subscript
         caller_code_reference = CodeReference(
             singleton.lineno_next_call_or_subscript,
@@ -263,14 +257,16 @@ def get_input_info(
 
 
 def get_column_names(df_object: Any) -> list[str]:
-    """Get column names for a dataframe ojbect"""
+    """Get column names for a dataframe object"""
     if isinstance(df_object, DataFrame):
         columns = list(
             df_object.columns
         )  # TODO: Update this for numpy arrays etc. later
     elif isinstance(df_object, Series):
         columns = [df_object.name]
-    elif isinstance(df_object, (csr_matrix, numpy.ndarray)):
+    elif isinstance(df_object, (csr_matrix, np.ndarray)):
+        columns = ["array"]
+    elif isinstance(df_object, list):
         columns = ["array"]
     else:
         raise NotImplementedError(

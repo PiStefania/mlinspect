@@ -42,7 +42,9 @@ class PandasPatching:
 
     @gorilla.name("read_csv")
     @gorilla.settings(allow_hit=True)
-    def patched_read_csv(self, *args: Any, **kwargs: Any) -> Any:
+    def patched_read_csv(  # pylint: disable=no-self-argument
+        *args: Any, **kwargs: Any
+    ) -> Any:
         """Patch for ('pandas.io.parsers', 'read_csv')"""
         # pylint: disable=no-method-argument
         original = gorilla.get_original_attribute(pandas, "read_csv")
@@ -107,12 +109,13 @@ class DataFramePatching:
                 OperatorType.DATA_SOURCE, function_info
             )
             input_infos = PandasBackend().before_call(operator_context, [])
-            result = original(self, *args, **kwargs)
+            original(self, *args, **kwargs)
+            result = self
             backend_result = PandasBackend().after_call(
                 operator_context, input_infos, result
             )
 
-            columns = list(result.columns)  # pylint: disable=no-member
+            columns = list(self.columns)  # type: ignore[attr-defined]
             dag_node = DagNode(
                 op_id,
                 BasicCodeLocation(caller_filename, lineno),
@@ -726,43 +729,33 @@ class LocIndexerPatching:
             operator_context = OperatorContext(
                 OperatorType.PROJECTION, function_info
             )
-            # TODO: move it to a utils function
-            if (
-                caller_filename
-                and lineno
-                and optional_code_reference
-                and optional_source_code
-                and function_info
-            ):
-                input_info = get_input_info(
-                    self.obj,  # type: ignore[attr-defined]
-                    caller_filename,  # pylint: disable=no-member
-                    lineno,
-                    function_info,
-                    optional_code_reference,
-                    optional_source_code,
-                )
-                input_infos = PandasBackend().before_call(
-                    operator_context, [input_info.annotated_dfobject]
-                )
-                result = original(self, *args, **kwargs)
-                backend_result = PandasBackend().after_call(
-                    operator_context, input_infos, result
-                )
-                result = backend_result.annotated_dfobject.result_data
+            input_info = get_input_info(
+                self.obj,  # type: ignore[attr-defined]
+                caller_filename,  # pylint: disable=no-member
+                lineno,
+                function_info,
+                optional_code_reference,
+                optional_source_code,
+            )
+            input_infos = PandasBackend().before_call(
+                operator_context, [input_info.annotated_dfobject]
+            )
+            result = original(self, *args, **kwargs)
+            backend_result = PandasBackend().after_call(
+                operator_context, input_infos, result
+            )
+            result = backend_result.annotated_dfobject.result_data
 
-                dag_node = DagNode(
-                    op_id,
-                    BasicCodeLocation(caller_filename, lineno),
-                    operator_context,
-                    DagNodeDetails("to {}".format(columns), columns),
-                    get_optional_code_info_or_none(
-                        optional_code_reference, optional_source_code
-                    ),
-                )
-                add_dag_node(dag_node, [input_info.dag_node], backend_result)
-            else:
-                result = original(self, *args, **kwargs)
+            dag_node = DagNode(
+                op_id,
+                BasicCodeLocation(caller_filename, lineno),
+                operator_context,
+                DagNodeDetails("to {}".format(columns), columns),
+                get_optional_code_info_or_none(
+                    optional_code_reference, optional_source_code
+                ),
+            )
+            add_dag_node(dag_node, [input_info.dag_node], backend_result)
         else:
             result = original(self, *args, **kwargs)
         return result
@@ -870,13 +863,14 @@ class SeriesPatching:
                 OperatorType.DATA_SOURCE, function_info
             )
             input_infos = PandasBackend().before_call(operator_context, [])
-            result = original(self, *args, **kwargs)
+            original(self, *args, **kwargs)
+            result = self
             backend_result = PandasBackend().after_call(
                 operator_context, input_infos, result, {}
             )
 
-            if result.name:
-                columns = list(result.name)
+            if self.name:
+                columns = list(self.name)
             else:
                 columns = ["_1"]
             dag_node = DagNode(
@@ -890,6 +884,6 @@ class SeriesPatching:
             )
             add_dag_node(dag_node, [], backend_result)
 
-        return execute_patched_func(
+        execute_patched_func(
             original, execute_inspections, self, *args, **kwargs
         )

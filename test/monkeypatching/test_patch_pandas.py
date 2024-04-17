@@ -358,7 +358,7 @@ def test_frame__getitem__frame() -> None:
         OptionalCodeInfo(
             CodeReference(3, 5, 4, 28),
             "pd.DataFrame([[0, None, 2], [1, 2, 3], [4, None, 2], "
-            "[9, 2, 3], [6, 1, 2], [1, 2, 3]], \n"
+            "[9, 2, 3], [6, 1, 2], [1, 2, 3]],\n"
             "    columns=['A', 'B', 'C'])",
         ),
     )

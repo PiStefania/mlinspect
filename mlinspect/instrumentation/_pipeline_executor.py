@@ -209,12 +209,12 @@ class PipelineExecutor:
         Load the pipeline source code from the specified source
         """
         sources = [notebook_path, python_path, python_code]
-        assert sum(source is not None for source in sources) == 1
-        if python_path is not None:
+        assert sum(source != "" for source in sources) == 1
+        if python_path != "":
             with open(python_path, encoding="utf-8") as file:
                 source_code = file.read()
             source_code_path = python_path
-        elif notebook_path is not None:
+        elif notebook_path != "":
             with open(notebook_path, encoding="utf-8") as file:
                 notebook = nbformat.reads(file.read(), nbformat.NO_CONVERT)
                 exporter = PythonExporter()

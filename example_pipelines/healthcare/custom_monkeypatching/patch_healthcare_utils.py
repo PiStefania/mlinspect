@@ -62,10 +62,10 @@ class SklearnMyW2VTransformerPatching:
         trim_rule: Callable | None = None,
         sorted_vocab: int = 1,
         batch_words: int = 10000,
-        mlinspect_caller_filename: str,
-        mlinspect_lineno: int,
-        mlinspect_optional_code_reference: CodeReference,
-        mlinspect_optional_source_code: str,
+        mlinspect_caller_filename: str | None = None,
+        mlinspect_lineno: int | None = None,
+        mlinspect_optional_code_reference: CodeReference | None = None,
+        mlinspect_optional_source_code: str | None = None,
         mlinspect_fit_transform_active: bool = False
     ) -> Any:
         """Patch for ('example_pipelines.healthcare.healthcare_utils', 'MyW2VTransformer')"""

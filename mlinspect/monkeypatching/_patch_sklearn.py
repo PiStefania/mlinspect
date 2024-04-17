@@ -83,7 +83,9 @@ class SklearnPreprocessingPatching:
 
     @gorilla.name("label_binarize")
     @gorilla.settings(allow_hit=True)
-    def patched_label_binarize(self, *args: Any, **kwargs: Any) -> Any:
+    def patched_label_binarize(  # pylint: disable=no-self-argument
+        *args: Any, **kwargs: Any
+    ) -> Any:
         """Patch for ('sklearn.preprocessing._label', 'label_binarize')"""
         # pylint: disable=no-method-argument
         original = gorilla.get_original_attribute(
@@ -151,7 +153,9 @@ class SklearnModelSelectionPatching:
 
     @gorilla.name("train_test_split")
     @gorilla.settings(allow_hit=True)
-    def patched_train_test_split(self, *args: Any, **kwargs: Any) -> Any:
+    def patched_train_test_split(
+        *args: Any, **kwargs: Any
+    ) -> Any:  # pylint: disable=no-self-argument
         """Patch for ('sklearn.model_selection._split', 'train_test_split')"""
         # pylint: disable=no-method-argument
         original = gorilla.get_original_attribute(
@@ -193,15 +197,10 @@ class SklearnModelSelectionPatching:
                 backend_result.annotated_dfobject,
                 backend_result.dag_node_annotation,
             )
-            test_backend_result = None
-            if (
-                backend_result.optional_second_annotated_dfobject
-                and backend_result.optional_second_dag_node_annotation
-            ):
-                test_backend_result = BackendResult(
-                    backend_result.optional_second_annotated_dfobject,
-                    backend_result.optional_second_dag_node_annotation,
-                )
+            test_backend_result = BackendResult(
+                backend_result.optional_second_annotated_dfobject,
+                backend_result.optional_second_dag_node_annotation,
+            )
 
             description = "(Train Data)"
             columns = list(result[0].columns)
@@ -604,13 +603,62 @@ class SklearnStandardScalerPatching:
         function_info = FunctionInfo(
             "sklearn.preprocessing._data", "StandardScaler"
         )
-        # TODO: move it to a utils function
-        if (
-            self.mlinspect_optional_source_code
-            and self.mlinspect_caller_filename
-            and self.mlinspect_lineno
-            and self.mlinspect_optional_code_reference
-        ):
+        input_info = get_input_info(
+            args[0],
+            self.mlinspect_caller_filename,
+            self.mlinspect_lineno,
+            function_info,
+            self.mlinspect_optional_code_reference,
+            self.mlinspect_optional_source_code,
+        )
+
+        operator_context = OperatorContext(
+            OperatorType.TRANSFORMER, function_info
+        )
+        input_infos = SklearnBackend().before_call(
+            operator_context, [input_info.annotated_dfobject]
+        )
+        result = original(
+            self, input_infos[0].result_data, *args[1:], **kwargs
+        )
+        backend_result = SklearnBackend().after_call(
+            operator_context,
+            input_infos,
+            result,
+            self.mlinspect_non_data_func_args,
+        )
+        new_return_value = backend_result.annotated_dfobject.result_data
+        assert isinstance(new_return_value, MlinspectNdarray)
+        dag_node = DagNode(
+            singleton.get_next_op_id(),
+            BasicCodeLocation(
+                self.mlinspect_caller_filename, self.mlinspect_lineno
+            ),
+            operator_context,
+            DagNodeDetails("Standard Scaler: fit_transform", ["array"]),
+            get_optional_code_info_or_none(
+                self.mlinspect_optional_code_reference,
+                self.mlinspect_optional_source_code,
+            ),
+        )
+        add_dag_node(dag_node, [input_info.dag_node], backend_result)
+        self.mlinspect_fit_transform_active = (
+            False  # pylint: disable=attribute-defined-outside-init
+        )
+        return new_return_value
+
+    @gorilla.name("transform")
+    @gorilla.settings(allow_hit=True)
+    def patched_transform(self, *args: Any, **kwargs: Any) -> Any:
+        """Patch for ('sklearn.preprocessing._data.StandardScaler', 'transform')"""
+        # pylint: disable=no-method-argument
+        original = gorilla.get_original_attribute(
+            preprocessing.StandardScaler, "transform"
+        )
+        if not self.mlinspect_fit_transform_active:
+            function_info = FunctionInfo(
+                "sklearn.preprocessing._data", "StandardScaler"
+            )
             input_info = get_input_info(
                 args[0],
                 self.mlinspect_caller_filename,
@@ -643,83 +691,13 @@ class SklearnStandardScalerPatching:
                     self.mlinspect_caller_filename, self.mlinspect_lineno
                 ),
                 operator_context,
-                DagNodeDetails("Standard Scaler: fit_transform", ["array"]),
+                DagNodeDetails("Standard Scaler: transform", ["array"]),
                 get_optional_code_info_or_none(
                     self.mlinspect_optional_code_reference,
                     self.mlinspect_optional_source_code,
                 ),
             )
             add_dag_node(dag_node, [input_info.dag_node], backend_result)
-            self.mlinspect_fit_transform_active = (
-                False  # pylint: disable=attribute-defined-outside-init
-            )
-            return new_return_value
-        else:
-            new_return_value = original(self, *args, **kwargs)
-        return new_return_value
-
-    @gorilla.name("transform")
-    @gorilla.settings(allow_hit=True)
-    def patched_transform(self, *args: Any, **kwargs: Any) -> Any:
-        """Patch for ('sklearn.preprocessing._data.StandardScaler', 'transform')"""
-        # pylint: disable=no-method-argument
-        original = gorilla.get_original_attribute(
-            preprocessing.StandardScaler, "transform"
-        )
-        if not self.mlinspect_fit_transform_active:
-            function_info = FunctionInfo(
-                "sklearn.preprocessing._data", "StandardScaler"
-            )
-            # TODO: move it to a utils function
-            if (
-                self.mlinspect_optional_source_code
-                and self.mlinspect_caller_filename
-                and self.mlinspect_lineno
-                and self.mlinspect_optional_code_reference
-            ):
-                input_info = get_input_info(
-                    args[0],
-                    self.mlinspect_caller_filename,
-                    self.mlinspect_lineno,
-                    function_info,
-                    self.mlinspect_optional_code_reference,
-                    self.mlinspect_optional_source_code,
-                )
-
-                operator_context = OperatorContext(
-                    OperatorType.TRANSFORMER, function_info
-                )
-                input_infos = SklearnBackend().before_call(
-                    operator_context, [input_info.annotated_dfobject]
-                )
-                result = original(
-                    self, input_infos[0].result_data, *args[1:], **kwargs
-                )
-                backend_result = SklearnBackend().after_call(
-                    operator_context,
-                    input_infos,
-                    result,
-                    self.mlinspect_non_data_func_args,
-                )
-                new_return_value = (
-                    backend_result.annotated_dfobject.result_data
-                )
-                assert isinstance(new_return_value, MlinspectNdarray)
-                dag_node = DagNode(
-                    singleton.get_next_op_id(),
-                    BasicCodeLocation(
-                        self.mlinspect_caller_filename, self.mlinspect_lineno
-                    ),
-                    operator_context,
-                    DagNodeDetails("Standard Scaler: transform", ["array"]),
-                    get_optional_code_info_or_none(
-                        self.mlinspect_optional_code_reference,
-                        self.mlinspect_optional_source_code,
-                    ),
-                )
-                add_dag_node(dag_node, [input_info.dag_node], backend_result)
-            else:
-                new_return_value = original(self, *args, **kwargs)
         else:
             new_return_value = original(self, *args, **kwargs)
         return new_return_value
@@ -827,13 +805,61 @@ class SklearnHasingVectorizerPatching:
         function_info = FunctionInfo(
             "sklearn.feature_extraction.text", "HashingVectorizer"
         )
-        # TODO: move it to a utils function
-        if (
-            self.mlinspect_optional_source_code
-            and self.mlinspect_caller_filename
-            and self.mlinspect_lineno
-            and self.mlinspect_optional_code_reference
-        ):
+        input_info = get_input_info(
+            args[0],
+            self.mlinspect_caller_filename,
+            self.mlinspect_lineno,
+            function_info,
+            self.mlinspect_optional_code_reference,
+            self.mlinspect_optional_source_code,
+        )
+
+        operator_context = OperatorContext(
+            OperatorType.TRANSFORMER, function_info
+        )
+        input_infos = SklearnBackend().before_call(
+            operator_context, [input_info.annotated_dfobject]
+        )
+        result = original(
+            self, input_infos[0].result_data, *args[1:], **kwargs
+        )
+        backend_result = SklearnBackend().after_call(
+            operator_context,
+            input_infos,
+            result,
+            self.mlinspect_non_data_func_args,
+        )
+        new_return_value = backend_result.annotated_dfobject.result_data
+        dag_node = DagNode(
+            singleton.get_next_op_id(),
+            BasicCodeLocation(
+                self.mlinspect_caller_filename, self.mlinspect_lineno
+            ),
+            operator_context,
+            DagNodeDetails("Hashing Vectorizer: fit_transform", ["array"]),
+            get_optional_code_info_or_none(
+                self.mlinspect_optional_code_reference,
+                self.mlinspect_optional_source_code,
+            ),
+        )
+        add_dag_node(dag_node, [input_info.dag_node], backend_result)
+        self.mlinspect_fit_transform_active = (
+            False  # pylint: disable=attribute-defined-outside-init
+        )
+        return new_return_value
+
+    @gorilla.name("transform")
+    @gorilla.settings(allow_hit=True)
+    def patched_transform(self, *args: Any, **kwargs: Any) -> Any:
+        """Patch for ('sklearn.preprocessing._data.StandardScaler', 'transform')"""
+        # pylint: disable=no-method-argument
+        original = gorilla.get_original_attribute(
+            text.HashingVectorizer, "transform"
+        )
+        if not self.mlinspect_fit_transform_active:
+            function_info = FunctionInfo(
+                "sklearn.feature_extraction.text", "HashingVectorizer"
+            )
             input_info = get_input_info(
                 args[0],
                 self.mlinspect_caller_filename,
@@ -865,81 +891,13 @@ class SklearnHasingVectorizerPatching:
                     self.mlinspect_caller_filename, self.mlinspect_lineno
                 ),
                 operator_context,
-                DagNodeDetails("Hashing Vectorizer: fit_transform", ["array"]),
+                DagNodeDetails("Hashing Vectorizer: transform", ["array"]),
                 get_optional_code_info_or_none(
                     self.mlinspect_optional_code_reference,
                     self.mlinspect_optional_source_code,
                 ),
             )
             add_dag_node(dag_node, [input_info.dag_node], backend_result)
-            self.mlinspect_fit_transform_active = (
-                False  # pylint: disable=attribute-defined-outside-init
-            )
-        else:
-            new_return_value = original(self, *args, **kwargs)
-        return new_return_value
-
-    @gorilla.name("transform")
-    @gorilla.settings(allow_hit=True)
-    def patched_transform(self, *args: Any, **kwargs: Any) -> Any:
-        """Patch for ('sklearn.preprocessing._data.StandardScaler', 'transform')"""
-        # pylint: disable=no-method-argument
-        original = gorilla.get_original_attribute(
-            text.HashingVectorizer, "transform"
-        )
-        if not self.mlinspect_fit_transform_active:
-            function_info = FunctionInfo(
-                "sklearn.feature_extraction.text", "HashingVectorizer"
-            )
-            # TODO: move it to a utils function
-            if (
-                self.mlinspect_optional_source_code
-                and self.mlinspect_caller_filename
-                and self.mlinspect_lineno
-                and self.mlinspect_optional_code_reference
-            ):
-                input_info = get_input_info(
-                    args[0],
-                    self.mlinspect_caller_filename,
-                    self.mlinspect_lineno,
-                    function_info,
-                    self.mlinspect_optional_code_reference,
-                    self.mlinspect_optional_source_code,
-                )
-
-                operator_context = OperatorContext(
-                    OperatorType.TRANSFORMER, function_info
-                )
-                input_infos = SklearnBackend().before_call(
-                    operator_context, [input_info.annotated_dfobject]
-                )
-                result = original(
-                    self, input_infos[0].result_data, *args[1:], **kwargs
-                )
-                backend_result = SklearnBackend().after_call(
-                    operator_context,
-                    input_infos,
-                    result,
-                    self.mlinspect_non_data_func_args,
-                )
-                new_return_value = (
-                    backend_result.annotated_dfobject.result_data
-                )
-                dag_node = DagNode(
-                    singleton.get_next_op_id(),
-                    BasicCodeLocation(
-                        self.mlinspect_caller_filename, self.mlinspect_lineno
-                    ),
-                    operator_context,
-                    DagNodeDetails("Hashing Vectorizer: transform", ["array"]),
-                    get_optional_code_info_or_none(
-                        self.mlinspect_optional_code_reference,
-                        self.mlinspect_optional_source_code,
-                    ),
-                )
-                add_dag_node(dag_node, [input_info.dag_node], backend_result)
-            else:
-                new_return_value = original(self, *args, **kwargs)
         else:
             new_return_value = original(self, *args, **kwargs)
         return new_return_value
@@ -1021,13 +979,62 @@ class SklearnKBinsDiscretizerPatching:
         function_info = FunctionInfo(
             "sklearn.preprocessing._discretization", "KBinsDiscretizer"
         )
-        # TODO: move it to a utils function
-        if (
-            self.mlinspect_optional_source_code
-            and self.mlinspect_caller_filename
-            and self.mlinspect_lineno
-            and self.mlinspect_optional_code_reference
-        ):
+        input_info = get_input_info(
+            args[0],
+            self.mlinspect_caller_filename,
+            self.mlinspect_lineno,
+            function_info,
+            self.mlinspect_optional_code_reference,
+            self.mlinspect_optional_source_code,
+        )
+
+        operator_context = OperatorContext(
+            OperatorType.TRANSFORMER, function_info
+        )
+        input_infos = SklearnBackend().before_call(
+            operator_context, [input_info.annotated_dfobject]
+        )
+        result = original(
+            self, input_infos[0].result_data, *args[1:], **kwargs
+        )
+        backend_result = SklearnBackend().after_call(
+            operator_context,
+            input_infos,
+            result,
+            self.mlinspect_non_data_func_args,
+        )
+        new_return_value = backend_result.annotated_dfobject.result_data
+        assert isinstance(new_return_value, MlinspectNdarray)
+        dag_node = DagNode(
+            singleton.get_next_op_id(),
+            BasicCodeLocation(
+                self.mlinspect_caller_filename, self.mlinspect_lineno
+            ),
+            operator_context,
+            DagNodeDetails("K-Bins Discretizer: fit_transform", ["array"]),
+            get_optional_code_info_or_none(
+                self.mlinspect_optional_code_reference,
+                self.mlinspect_optional_source_code,
+            ),
+        )
+        add_dag_node(dag_node, [input_info.dag_node], backend_result)
+        self.mlinspect_fit_transform_active = (
+            False  # pylint: disable=attribute-defined-outside-init
+        )
+        return new_return_value
+
+    @gorilla.name("transform")
+    @gorilla.settings(allow_hit=True)
+    def patched_transform(self, *args: Any, **kwargs: Any) -> Any:
+        """Patch for ('sklearn.preprocessing._discretization.KBinsDiscretizer', 'transform')"""
+        # pylint: disable=no-method-argument
+        original = gorilla.get_original_attribute(
+            preprocessing.KBinsDiscretizer, "transform"
+        )
+        if not self.mlinspect_fit_transform_active:
+            function_info = FunctionInfo(
+                "sklearn.preprocessing._discretization", "KBinsDiscretizer"
+            )
             input_info = get_input_info(
                 args[0],
                 self.mlinspect_caller_filename,
@@ -1060,82 +1067,13 @@ class SklearnKBinsDiscretizerPatching:
                     self.mlinspect_caller_filename, self.mlinspect_lineno
                 ),
                 operator_context,
-                DagNodeDetails("K-Bins Discretizer: fit_transform", ["array"]),
+                DagNodeDetails("K-Bins Discretizer: transform", ["array"]),
                 get_optional_code_info_or_none(
                     self.mlinspect_optional_code_reference,
                     self.mlinspect_optional_source_code,
                 ),
             )
             add_dag_node(dag_node, [input_info.dag_node], backend_result)
-            self.mlinspect_fit_transform_active = (
-                False  # pylint: disable=attribute-defined-outside-init
-            )
-        else:
-            new_return_value = original(self, *args, **kwargs)
-        return new_return_value
-
-    @gorilla.name("transform")
-    @gorilla.settings(allow_hit=True)
-    def patched_transform(self, *args: Any, **kwargs: Any) -> Any:
-        """Patch for ('sklearn.preprocessing._discretization.KBinsDiscretizer', 'transform')"""
-        # pylint: disable=no-method-argument
-        original = gorilla.get_original_attribute(
-            preprocessing.KBinsDiscretizer, "transform"
-        )
-        if not self.mlinspect_fit_transform_active:
-            function_info = FunctionInfo(
-                "sklearn.preprocessing._discretization", "KBinsDiscretizer"
-            )
-            # TODO: move it to a utils function
-            if (
-                self.mlinspect_optional_source_code
-                and self.mlinspect_caller_filename
-                and self.mlinspect_lineno
-                and self.mlinspect_optional_code_reference
-            ):
-                input_info = get_input_info(
-                    args[0],
-                    self.mlinspect_caller_filename,
-                    self.mlinspect_lineno,
-                    function_info,
-                    self.mlinspect_optional_code_reference,
-                    self.mlinspect_optional_source_code,
-                )
-
-                operator_context = OperatorContext(
-                    OperatorType.TRANSFORMER, function_info
-                )
-                input_infos = SklearnBackend().before_call(
-                    operator_context, [input_info.annotated_dfobject]
-                )
-                result = original(
-                    self, input_infos[0].result_data, *args[1:], **kwargs
-                )
-                backend_result = SklearnBackend().after_call(
-                    operator_context,
-                    input_infos,
-                    result,
-                    self.mlinspect_non_data_func_args,
-                )
-                new_return_value = (
-                    backend_result.annotated_dfobject.result_data
-                )
-                assert isinstance(new_return_value, MlinspectNdarray)
-                dag_node = DagNode(
-                    singleton.get_next_op_id(),
-                    BasicCodeLocation(
-                        self.mlinspect_caller_filename, self.mlinspect_lineno
-                    ),
-                    operator_context,
-                    DagNodeDetails("K-Bins Discretizer: transform", ["array"]),
-                    get_optional_code_info_or_none(
-                        self.mlinspect_optional_code_reference,
-                        self.mlinspect_optional_source_code,
-                    ),
-                )
-                add_dag_node(dag_node, [input_info.dag_node], backend_result)
-            else:
-                new_return_value = original(self, *args, **kwargs)
         else:
             new_return_value = original(self, *args, **kwargs)
         return new_return_value
@@ -1221,13 +1159,61 @@ class SklearnOneHotEncoderPatching:
         function_info = FunctionInfo(
             "sklearn.preprocessing._encoders", "OneHotEncoder"
         )
-        # TODO: move it to a utils function
-        if (
-            self.mlinspect_optional_source_code
-            and self.mlinspect_caller_filename
-            and self.mlinspect_lineno
-            and self.mlinspect_optional_code_reference
-        ):
+        input_info = get_input_info(
+            args[0],
+            self.mlinspect_caller_filename,
+            self.mlinspect_lineno,
+            function_info,
+            self.mlinspect_optional_code_reference,
+            self.mlinspect_optional_source_code,
+        )
+
+        operator_context = OperatorContext(
+            OperatorType.TRANSFORMER, function_info
+        )
+        input_infos = SklearnBackend().before_call(
+            operator_context, [input_info.annotated_dfobject]
+        )
+        result = original(
+            self, input_infos[0].result_data, *args[1:], **kwargs
+        )
+        backend_result = SklearnBackend().after_call(
+            operator_context,
+            input_infos,
+            result,
+            self.mlinspect_non_data_func_args,
+        )
+        new_return_value = backend_result.annotated_dfobject.result_data
+        dag_node = DagNode(
+            singleton.get_next_op_id(),
+            BasicCodeLocation(
+                self.mlinspect_caller_filename, self.mlinspect_lineno
+            ),
+            operator_context,
+            DagNodeDetails("One-Hot Encoder: fit_transform", ["array"]),
+            get_optional_code_info_or_none(
+                self.mlinspect_optional_code_reference,
+                self.mlinspect_optional_source_code,
+            ),
+        )
+        add_dag_node(dag_node, [input_info.dag_node], backend_result)
+        self.mlinspect_fit_transform_active = (
+            False  # pylint: disable=attribute-defined-outside-init
+        )
+        return new_return_value
+
+    @gorilla.name("transform")
+    @gorilla.settings(allow_hit=True)
+    def patched_transform(self, *args: Any, **kwargs: Any) -> Any:
+        """Patch for ('sklearn.preprocessing._encoders.OneHotEncoder', 'transform')"""
+        # pylint: disable=no-method-argument
+        original = gorilla.get_original_attribute(
+            preprocessing.OneHotEncoder, "transform"
+        )
+        if not self.mlinspect_fit_transform_active:
+            function_info = FunctionInfo(
+                "sklearn.preprocessing._encoders", "OneHotEncoder"
+            )
             input_info = get_input_info(
                 args[0],
                 self.mlinspect_caller_filename,
@@ -1259,81 +1245,13 @@ class SklearnOneHotEncoderPatching:
                     self.mlinspect_caller_filename, self.mlinspect_lineno
                 ),
                 operator_context,
-                DagNodeDetails("One-Hot Encoder: fit_transform", ["array"]),
+                DagNodeDetails("One-Hot Encoder: transform", ["array"]),
                 get_optional_code_info_or_none(
                     self.mlinspect_optional_code_reference,
                     self.mlinspect_optional_source_code,
                 ),
             )
             add_dag_node(dag_node, [input_info.dag_node], backend_result)
-            self.mlinspect_fit_transform_active = (
-                False  # pylint: disable=attribute-defined-outside-init
-            )
-        else:
-            new_return_value = original(self, *args, **kwargs)
-        return new_return_value
-
-    @gorilla.name("transform")
-    @gorilla.settings(allow_hit=True)
-    def patched_transform(self, *args: Any, **kwargs: Any) -> Any:
-        """Patch for ('sklearn.preprocessing._encoders.OneHotEncoder', 'transform')"""
-        # pylint: disable=no-method-argument
-        original = gorilla.get_original_attribute(
-            preprocessing.OneHotEncoder, "transform"
-        )
-        if not self.mlinspect_fit_transform_active:
-            function_info = FunctionInfo(
-                "sklearn.preprocessing._encoders", "OneHotEncoder"
-            )
-            # TODO: move it to a utils function
-            if (
-                self.mlinspect_optional_source_code
-                and self.mlinspect_caller_filename
-                and self.mlinspect_lineno
-                and self.mlinspect_optional_code_reference
-            ):
-                input_info = get_input_info(
-                    args[0],
-                    self.mlinspect_caller_filename,
-                    self.mlinspect_lineno,
-                    function_info,
-                    self.mlinspect_optional_code_reference,
-                    self.mlinspect_optional_source_code,
-                )
-
-                operator_context = OperatorContext(
-                    OperatorType.TRANSFORMER, function_info
-                )
-                input_infos = SklearnBackend().before_call(
-                    operator_context, [input_info.annotated_dfobject]
-                )
-                result = original(
-                    self, input_infos[0].result_data, *args[1:], **kwargs
-                )
-                backend_result = SklearnBackend().after_call(
-                    operator_context,
-                    input_infos,
-                    result,
-                    self.mlinspect_non_data_func_args,
-                )
-                new_return_value = (
-                    backend_result.annotated_dfobject.result_data
-                )
-                dag_node = DagNode(
-                    singleton.get_next_op_id(),
-                    BasicCodeLocation(
-                        self.mlinspect_caller_filename, self.mlinspect_lineno
-                    ),
-                    operator_context,
-                    DagNodeDetails("One-Hot Encoder: transform", ["array"]),
-                    get_optional_code_info_or_none(
-                        self.mlinspect_optional_code_reference,
-                        self.mlinspect_optional_source_code,
-                    ),
-                )
-                add_dag_node(dag_node, [input_info.dag_node], backend_result)
-            else:
-                new_return_value = original(self, *args, **kwargs)
         else:
             new_return_value = original(self, *args, **kwargs)
         return new_return_value
@@ -1417,13 +1335,66 @@ class SklearnSimpleImputerPatching:
             impute.SimpleImputer, "fit_transform"
         )
         function_info = FunctionInfo("sklearn.impute._base", "SimpleImputer")
-        # TODO: move it to a utils function
-        if (
-            self.mlinspect_optional_source_code
-            and self.mlinspect_caller_filename
-            and self.mlinspect_lineno
-            and self.mlinspect_optional_code_reference
-        ):
+        input_info = get_input_info(
+            args[0],
+            self.mlinspect_caller_filename,
+            self.mlinspect_lineno,
+            function_info,
+            self.mlinspect_optional_code_reference,
+            self.mlinspect_optional_source_code,
+        )
+
+        operator_context = OperatorContext(
+            OperatorType.TRANSFORMER, function_info
+        )
+        input_infos = SklearnBackend().before_call(
+            operator_context, [input_info.annotated_dfobject]
+        )
+        result = original(
+            self, input_infos[0].result_data, *args[1:], **kwargs
+        )
+        backend_result = SklearnBackend().after_call(
+            operator_context,
+            input_infos,
+            result,
+            self.mlinspect_non_data_func_args,
+        )
+        new_return_value = backend_result.annotated_dfobject.result_data
+        if isinstance(input_infos[0].result_data, pandas.DataFrame):
+            columns = list(input_infos[0].result_data.columns)
+        else:
+            columns = ["array"]
+
+        dag_node = DagNode(
+            singleton.get_next_op_id(),
+            BasicCodeLocation(
+                self.mlinspect_caller_filename, self.mlinspect_lineno
+            ),
+            operator_context,
+            DagNodeDetails("Simple Imputer: fit_transform", columns),
+            get_optional_code_info_or_none(
+                self.mlinspect_optional_code_reference,
+                self.mlinspect_optional_source_code,
+            ),
+        )
+        add_dag_node(dag_node, [input_info.dag_node], backend_result)
+        self.mlinspect_fit_transform_active = (
+            False  # pylint: disable=attribute-defined-outside-init
+        )
+        return new_return_value
+
+    @gorilla.name("transform")
+    @gorilla.settings(allow_hit=True)
+    def patched_transform(self, *args: Any, **kwargs: Any) -> Any:
+        """Patch for ('sklearn.impute._base.SimpleImputer', 'transform')"""
+        # pylint: disable=no-method-argument
+        original = gorilla.get_original_attribute(
+            impute.SimpleImputer, "transform"
+        )
+        if not self.mlinspect_fit_transform_active:
+            function_info = FunctionInfo(
+                "sklearn.impute._base", "SimpleImputer"
+            )
             input_info = get_input_info(
                 args[0],
                 self.mlinspect_caller_filename,
@@ -1460,86 +1431,13 @@ class SklearnSimpleImputerPatching:
                     self.mlinspect_caller_filename, self.mlinspect_lineno
                 ),
                 operator_context,
-                DagNodeDetails("Simple Imputer: fit_transform", columns),
+                DagNodeDetails("Simple Imputer: transform", columns),
                 get_optional_code_info_or_none(
                     self.mlinspect_optional_code_reference,
                     self.mlinspect_optional_source_code,
                 ),
             )
             add_dag_node(dag_node, [input_info.dag_node], backend_result)
-            self.mlinspect_fit_transform_active = (
-                False  # pylint: disable=attribute-defined-outside-init
-            )
-        else:
-            new_return_value = original(self, *args, **kwargs)
-        return new_return_value
-
-    @gorilla.name("transform")
-    @gorilla.settings(allow_hit=True)
-    def patched_transform(self, *args: Any, **kwargs: Any) -> Any:
-        """Patch for ('sklearn.impute._base.SimpleImputer', 'transform')"""
-        # pylint: disable=no-method-argument
-        original = gorilla.get_original_attribute(
-            impute.SimpleImputer, "transform"
-        )
-        if not self.mlinspect_fit_transform_active:
-            function_info = FunctionInfo(
-                "sklearn.impute._base", "SimpleImputer"
-            )
-            # TODO: move it to a utils function
-            if (
-                self.mlinspect_optional_source_code
-                and self.mlinspect_caller_filename
-                and self.mlinspect_lineno
-                and self.mlinspect_optional_code_reference
-            ):
-                input_info = get_input_info(
-                    args[0],
-                    self.mlinspect_caller_filename,
-                    self.mlinspect_lineno,
-                    function_info,
-                    self.mlinspect_optional_code_reference,
-                    self.mlinspect_optional_source_code,
-                )
-
-                operator_context = OperatorContext(
-                    OperatorType.TRANSFORMER, function_info
-                )
-                input_infos = SklearnBackend().before_call(
-                    operator_context, [input_info.annotated_dfobject]
-                )
-                result = original(
-                    self, input_infos[0].result_data, *args[1:], **kwargs
-                )
-                backend_result = SklearnBackend().after_call(
-                    operator_context,
-                    input_infos,
-                    result,
-                    self.mlinspect_non_data_func_args,
-                )
-                new_return_value = (
-                    backend_result.annotated_dfobject.result_data
-                )
-                if isinstance(input_infos[0].result_data, pandas.DataFrame):
-                    columns = list(input_infos[0].result_data.columns)
-                else:
-                    columns = ["array"]
-
-                dag_node = DagNode(
-                    singleton.get_next_op_id(),
-                    BasicCodeLocation(
-                        self.mlinspect_caller_filename, self.mlinspect_lineno
-                    ),
-                    operator_context,
-                    DagNodeDetails("Simple Imputer: transform", columns),
-                    get_optional_code_info_or_none(
-                        self.mlinspect_optional_code_reference,
-                        self.mlinspect_optional_source_code,
-                    ),
-                )
-                add_dag_node(dag_node, [input_info.dag_node], backend_result)
-            else:
-                new_return_value = original(self, *args, **kwargs)
         else:
             new_return_value = original(self, *args, **kwargs)
         return new_return_value
@@ -1634,13 +1532,67 @@ class SklearnFunctionTransformerPatching:
         function_info = FunctionInfo(
             "sklearn.preprocessing_function_transformer", "FunctionTransformer"
         )
-        # TODO: move it to a utils function
-        if (
-            self.mlinspect_optional_source_code
-            and self.mlinspect_caller_filename
-            and self.mlinspect_lineno
-            and self.mlinspect_optional_code_reference
-        ):
+        input_info = get_input_info(
+            args[0],
+            self.mlinspect_caller_filename,
+            self.mlinspect_lineno,
+            function_info,
+            self.mlinspect_optional_code_reference,
+            self.mlinspect_optional_source_code,
+        )
+
+        operator_context = OperatorContext(
+            OperatorType.TRANSFORMER, function_info
+        )
+        input_infos = SklearnBackend().before_call(
+            operator_context, [input_info.annotated_dfobject]
+        )
+        result = original(
+            self, input_infos[0].result_data, *args[1:], **kwargs
+        )
+        backend_result = SklearnBackend().after_call(
+            operator_context,
+            input_infos,
+            result,
+            self.mlinspect_non_data_func_args,
+        )
+        new_return_value = backend_result.annotated_dfobject.result_data
+        if isinstance(input_infos[0].result_data, pandas.DataFrame):
+            columns = list(input_infos[0].result_data.columns)
+        else:
+            columns = ["array"]
+
+        dag_node = DagNode(
+            singleton.get_next_op_id(),
+            BasicCodeLocation(
+                self.mlinspect_caller_filename, self.mlinspect_lineno
+            ),
+            operator_context,
+            DagNodeDetails("Function Transformer: fit_transform", columns),
+            get_optional_code_info_or_none(
+                self.mlinspect_optional_code_reference,
+                self.mlinspect_optional_source_code,
+            ),
+        )
+        add_dag_node(dag_node, [input_info.dag_node], backend_result)
+        self.mlinspect_fit_transform_active = (
+            False  # pylint: disable=attribute-defined-outside-init
+        )
+        return new_return_value
+
+    @gorilla.name("transform")
+    @gorilla.settings(allow_hit=True)
+    def patched_transform(self, *args: Any, **kwargs: Any) -> Any:
+        """Patch for ('sklearn.preprocessing_function_transformer.FunctionTransformer', 'transform')"""
+        # pylint: disable=no-method-argument
+        original = gorilla.get_original_attribute(
+            preprocessing.FunctionTransformer, "transform"
+        )
+        if not self.mlinspect_fit_transform_active:
+            function_info = FunctionInfo(
+                "sklearn.preprocessing_function_transformer",
+                "FunctionTransformer",
+            )
             input_info = get_input_info(
                 args[0],
                 self.mlinspect_caller_filename,
@@ -1677,87 +1629,13 @@ class SklearnFunctionTransformerPatching:
                     self.mlinspect_caller_filename, self.mlinspect_lineno
                 ),
                 operator_context,
-                DagNodeDetails("Function Transformer: fit_transform", columns),
+                DagNodeDetails("Function Transformer: transform", columns),
                 get_optional_code_info_or_none(
                     self.mlinspect_optional_code_reference,
                     self.mlinspect_optional_source_code,
                 ),
             )
             add_dag_node(dag_node, [input_info.dag_node], backend_result)
-            self.mlinspect_fit_transform_active = (
-                False  # pylint: disable=attribute-defined-outside-init
-            )
-        else:
-            new_return_value = original(self, *args, **kwargs)
-        return new_return_value
-
-    @gorilla.name("transform")
-    @gorilla.settings(allow_hit=True)
-    def patched_transform(self, *args: Any, **kwargs: Any) -> Any:
-        """Patch for ('sklearn.preprocessing_function_transformer.FunctionTransformer', 'transform')"""
-        # pylint: disable=no-method-argument
-        original = gorilla.get_original_attribute(
-            preprocessing.FunctionTransformer, "transform"
-        )
-        if not self.mlinspect_fit_transform_active:
-            function_info = FunctionInfo(
-                "sklearn.preprocessing_function_transformer",
-                "FunctionTransformer",
-            )
-            # TODO: move it to a utils function
-            if (
-                self.mlinspect_optional_source_code
-                and self.mlinspect_caller_filename
-                and self.mlinspect_lineno
-                and self.mlinspect_optional_code_reference
-            ):
-                input_info = get_input_info(
-                    args[0],
-                    self.mlinspect_caller_filename,
-                    self.mlinspect_lineno,
-                    function_info,
-                    self.mlinspect_optional_code_reference,
-                    self.mlinspect_optional_source_code,
-                )
-
-                operator_context = OperatorContext(
-                    OperatorType.TRANSFORMER, function_info
-                )
-                input_infos = SklearnBackend().before_call(
-                    operator_context, [input_info.annotated_dfobject]
-                )
-                result = original(
-                    self, input_infos[0].result_data, *args[1:], **kwargs
-                )
-                backend_result = SklearnBackend().after_call(
-                    operator_context,
-                    input_infos,
-                    result,
-                    self.mlinspect_non_data_func_args,
-                )
-                new_return_value = (
-                    backend_result.annotated_dfobject.result_data
-                )
-                if isinstance(input_infos[0].result_data, pandas.DataFrame):
-                    columns = list(input_infos[0].result_data.columns)
-                else:
-                    columns = ["array"]
-
-                dag_node = DagNode(
-                    singleton.get_next_op_id(),
-                    BasicCodeLocation(
-                        self.mlinspect_caller_filename, self.mlinspect_lineno
-                    ),
-                    operator_context,
-                    DagNodeDetails("Function Transformer: transform", columns),
-                    get_optional_code_info_or_none(
-                        self.mlinspect_optional_code_reference,
-                        self.mlinspect_optional_source_code,
-                    ),
-                )
-                add_dag_node(dag_node, [input_info.dag_node], backend_result)
-            else:
-                new_return_value = original(self, *args, **kwargs)
         else:
             new_return_value = original(self, *args, **kwargs)
         return new_return_value
@@ -1790,7 +1668,7 @@ class SklearnDecisionTreePatching:
         mlinspect_lineno: int | None = None,
         mlinspect_optional_code_reference: CodeReference | None = None,
         mlinspect_optional_source_code: str | None = None,
-        mlinspect_estimator_node_id: int = -1,
+        mlinspect_estimator_node_id: int | None = None,
     ) -> Any:
         """Patch for ('sklearn.tree._classes', 'DecisionTreeClassifier')"""
         # pylint: disable=no-method-argument, attribute-defined-outside-init, too-many-locals
@@ -1856,64 +1734,60 @@ class SklearnDecisionTreePatching:
             function_info = FunctionInfo(
                 "sklearn.tree._classes", "DecisionTreeClassifier"
             )
-            # TODO: move it to a utils function
-            if self.mlinspect_caller_filename and self.mlinspect_lineno:
-                data_backend_result, train_data_node, train_data_result = (
-                    add_train_data_node(self, args[0], function_info)
-                )
-                (
-                    label_backend_result,
-                    train_labels_node,
-                    train_labels_result,
-                ) = add_train_label_node(self, args[1], function_info)
+            data_backend_result, train_data_node, train_data_result = (
+                add_train_data_node(self, args[0], function_info)
+            )
+            (
+                label_backend_result,
+                train_labels_node,
+                train_labels_result,
+            ) = add_train_label_node(self, args[1], function_info)
 
-                # Estimator
-                operator_context = OperatorContext(
-                    OperatorType.ESTIMATOR, function_info
-                )
-                input_dfs = [
-                    data_backend_result.annotated_dfobject,
-                    label_backend_result.annotated_dfobject,
-                ]
-                input_infos = SklearnBackend().before_call(
-                    operator_context, input_dfs
-                )
-                result = original(
-                    self,
-                    train_data_result,
-                    train_labels_result,
-                    *args[2:],
-                    **kwargs,
-                )
-                estimator_backend_result = SklearnBackend().after_call(
-                    operator_context,
-                    input_infos,
-                    result,
-                    self.mlinspect_non_data_func_args,
-                )
+            # Estimator
+            operator_context = OperatorContext(
+                OperatorType.ESTIMATOR, function_info
+            )
+            input_dfs = [
+                data_backend_result.annotated_dfobject,
+                label_backend_result.annotated_dfobject,
+            ]
+            input_infos = SklearnBackend().before_call(
+                operator_context, input_dfs
+            )
+            result = original(
+                self,
+                train_data_result,
+                train_labels_result,
+                *args[2:],
+                **kwargs,
+            )
+            estimator_backend_result = SklearnBackend().after_call(
+                operator_context,
+                input_infos,
+                result,
+                self.mlinspect_non_data_func_args,
+            )
 
-                self.mlinspect_estimator_node_id = (
-                    singleton.get_next_op_id()
-                )  # pylint: disable=attribute-defined-outside-init
-                dag_node = DagNode(
-                    self.mlinspect_estimator_node_id,
-                    BasicCodeLocation(
-                        self.mlinspect_caller_filename, self.mlinspect_lineno
-                    ),
-                    operator_context,
-                    DagNodeDetails("Decision Tree", []),
-                    get_optional_code_info_or_none(
-                        self.mlinspect_optional_code_reference,
-                        self.mlinspect_optional_source_code,
-                    ),
-                )
-                add_dag_node(
-                    dag_node,
-                    [train_data_node, train_labels_node],
-                    estimator_backend_result,
-                )
-            else:
-                original(self, *args, **kwargs)
+            self.mlinspect_estimator_node_id = (
+                singleton.get_next_op_id()
+            )  # pylint: disable=attribute-defined-outside-init
+            dag_node = DagNode(
+                self.mlinspect_estimator_node_id,
+                BasicCodeLocation(
+                    self.mlinspect_caller_filename, self.mlinspect_lineno
+                ),
+                operator_context,
+                DagNodeDetails("Decision Tree", []),
+                get_optional_code_info_or_none(
+                    self.mlinspect_optional_code_reference,
+                    self.mlinspect_optional_source_code,
+                ),
+            )
+            add_dag_node(
+                dag_node,
+                [train_data_node, train_labels_node],
+                estimator_backend_result,
+            )
         else:
             original(self, *args, **kwargs)
         return self
@@ -2123,62 +1997,58 @@ class SklearnSGDClassifierPatching:
             function_info = FunctionInfo(
                 "sklearn.linear_model._stochastic_gradient", "SGDClassifier"
             )
-            # TODO: move it to a utils function
-            if self.mlinspect_caller_filename and self.mlinspect_lineno:
-                data_backend_result, train_data_node, train_data_result = (
-                    add_train_data_node(self, args[0], function_info)
-                )
-                (
-                    label_backend_result,
-                    train_labels_node,
-                    train_labels_result,
-                ) = add_train_label_node(self, args[1], function_info)
-                # Estimator
-                operator_context = OperatorContext(
-                    OperatorType.ESTIMATOR, function_info
-                )
-                input_dfs = [
-                    data_backend_result.annotated_dfobject,
-                    label_backend_result.annotated_dfobject,
-                ]
-                input_infos = SklearnBackend().before_call(
-                    operator_context, input_dfs
-                )
-                result = original(
-                    self,
-                    train_data_result,
-                    train_labels_result,
-                    *args[2:],
-                    **kwargs,
-                )
-                estimator_backend_result = SklearnBackend().after_call(
-                    operator_context,
-                    input_infos,
-                    result,
-                    self.mlinspect_non_data_func_args,
-                )
-                self.mlinspect_estimator_node_id = (
-                    singleton.get_next_op_id()
-                )  # pylint: disable=attribute-defined-outside-init
-                dag_node = DagNode(
-                    self.mlinspect_estimator_node_id,
-                    BasicCodeLocation(
-                        self.mlinspect_caller_filename, self.mlinspect_lineno
-                    ),
-                    operator_context,
-                    DagNodeDetails("SGD Classifier", []),
-                    get_optional_code_info_or_none(
-                        self.mlinspect_optional_code_reference,
-                        self.mlinspect_optional_source_code,
-                    ),
-                )
-                add_dag_node(
-                    dag_node,
-                    [train_data_node, train_labels_node],
-                    estimator_backend_result,
-                )
-            else:
-                original(self, *args, **kwargs)
+            data_backend_result, train_data_node, train_data_result = (
+                add_train_data_node(self, args[0], function_info)
+            )
+            (
+                label_backend_result,
+                train_labels_node,
+                train_labels_result,
+            ) = add_train_label_node(self, args[1], function_info)
+            # Estimator
+            operator_context = OperatorContext(
+                OperatorType.ESTIMATOR, function_info
+            )
+            input_dfs = [
+                data_backend_result.annotated_dfobject,
+                label_backend_result.annotated_dfobject,
+            ]
+            input_infos = SklearnBackend().before_call(
+                operator_context, input_dfs
+            )
+            result = original(
+                self,
+                train_data_result,
+                train_labels_result,
+                *args[2:],
+                **kwargs,
+            )
+            estimator_backend_result = SklearnBackend().after_call(
+                operator_context,
+                input_infos,
+                result,
+                self.mlinspect_non_data_func_args,
+            )
+            self.mlinspect_estimator_node_id = (
+                singleton.get_next_op_id()
+            )  # pylint: disable=attribute-defined-outside-init
+            dag_node = DagNode(
+                self.mlinspect_estimator_node_id,
+                BasicCodeLocation(
+                    self.mlinspect_caller_filename, self.mlinspect_lineno
+                ),
+                operator_context,
+                DagNodeDetails("SGD Classifier", []),
+                get_optional_code_info_or_none(
+                    self.mlinspect_optional_code_reference,
+                    self.mlinspect_optional_source_code,
+                ),
+            )
+            add_dag_node(
+                dag_node,
+                [train_data_node, train_labels_node],
+                estimator_backend_result,
+            )
         else:
             original(self, *args, **kwargs)
         return self
@@ -2380,63 +2250,59 @@ class SklearnLogisticRegressionPatching:
             function_info = FunctionInfo(
                 "sklearn.linear_model._logistic", "LogisticRegression"
             )
-            # TODO: move it to a utils function
-            if self.mlinspect_caller_filename and self.mlinspect_lineno:
-                data_backend_result, train_data_node, train_data_result = (
-                    add_train_data_node(self, args[0], function_info)
-                )
-                (
-                    label_backend_result,
-                    train_labels_node,
-                    train_labels_result,
-                ) = add_train_label_node(self, args[1], function_info)
+            data_backend_result, train_data_node, train_data_result = (
+                add_train_data_node(self, args[0], function_info)
+            )
+            (
+                label_backend_result,
+                train_labels_node,
+                train_labels_result,
+            ) = add_train_label_node(self, args[1], function_info)
 
-                # Estimator
-                operator_context = OperatorContext(
-                    OperatorType.ESTIMATOR, function_info
-                )
-                input_dfs = [
-                    data_backend_result.annotated_dfobject,
-                    label_backend_result.annotated_dfobject,
-                ]
-                input_infos = SklearnBackend().before_call(
-                    operator_context, input_dfs
-                )
-                result = original(
-                    self,
-                    train_data_result,
-                    train_labels_result,
-                    *args[2:],
-                    **kwargs,
-                )
-                estimator_backend_result = SklearnBackend().after_call(
-                    operator_context,
-                    input_infos,
-                    result,
-                    self.mlinspect_non_data_func_args,
-                )
-                self.mlinspect_estimator_node_id = (
-                    singleton.get_next_op_id()
-                )  # pylint: disable=attribute-defined-outside-init
-                dag_node = DagNode(
-                    self.mlinspect_estimator_node_id,
-                    BasicCodeLocation(
-                        self.mlinspect_caller_filename, self.mlinspect_lineno
-                    ),
-                    operator_context,
-                    DagNodeDetails("Logistic Regression", []),
-                    get_optional_code_info_or_none(
-                        self.mlinspect_optional_code_reference,
-                        self.mlinspect_optional_source_code,
-                    ),
-                )
-                add_dag_node(
-                    dag_node,
-                    [train_data_node, train_labels_node],
-                    estimator_backend_result,
-                )
-            else:
-                original(self, *args, **kwargs)
+            # Estimator
+            operator_context = OperatorContext(
+                OperatorType.ESTIMATOR, function_info
+            )
+            input_dfs = [
+                data_backend_result.annotated_dfobject,
+                label_backend_result.annotated_dfobject,
+            ]
+            input_infos = SklearnBackend().before_call(
+                operator_context, input_dfs
+            )
+            result = original(
+                self,
+                train_data_result,
+                train_labels_result,
+                *args[2:],
+                **kwargs,
+            )
+            estimator_backend_result = SklearnBackend().after_call(
+                operator_context,
+                input_infos,
+                result,
+                self.mlinspect_non_data_func_args,
+            )
+            self.mlinspect_estimator_node_id = (
+                singleton.get_next_op_id()
+            )  # pylint: disable=attribute-defined-outside-init
+            dag_node = DagNode(
+                self.mlinspect_estimator_node_id,
+                BasicCodeLocation(
+                    self.mlinspect_caller_filename, self.mlinspect_lineno
+                ),
+                operator_context,
+                DagNodeDetails("Logistic Regression", []),
+                get_optional_code_info_or_none(
+                    self.mlinspect_optional_code_reference,
+                    self.mlinspect_optional_source_code,
+                ),
+            )
+            add_dag_node(
+                dag_node,
+                [train_data_node, train_labels_node],
+                estimator_backend_result,
+            )
         else:
             original(self, *args, **kwargs)
         return self
@@ -2610,74 +2476,70 @@ class SklearnKerasClassifierPatching:
             function_info = FunctionInfo(
                 "scikeras.wrappers.KerasClassifier", "fit"
             )
-            # TODO: move it to a utils function
-            if self.mlinspect_caller_filename and self.mlinspect_lineno:
-                data_backend_result, train_data_dag_node, train_data_result = (
-                    add_train_data_node(self, args[0], function_info)
-                )
-                (
-                    label_backend_result,
-                    train_labels_dag_node,
-                    train_labels_result,
-                ) = add_train_label_node(self, args[1], function_info)
+            data_backend_result, train_data_dag_node, train_data_result = (
+                add_train_data_node(self, args[0], function_info)
+            )
+            (
+                label_backend_result,
+                train_labels_dag_node,
+                train_labels_result,
+            ) = add_train_label_node(self, args[1], function_info)
 
-                # Estimator
-                operator_context = OperatorContext(
-                    OperatorType.ESTIMATOR, function_info
-                )
-                input_dfs = [
-                    data_backend_result.annotated_dfobject,
-                    label_backend_result.annotated_dfobject,
+            # Estimator
+            operator_context = OperatorContext(
+                OperatorType.ESTIMATOR, function_info
+            )
+            input_dfs = [
+                data_backend_result.annotated_dfobject,
+                label_backend_result.annotated_dfobject,
+            ]
+            input_infos = SklearnBackend().before_call(
+                operator_context, input_dfs
+            )
+            result = original(
+                self,
+                train_data_result,
+                train_labels_result,
+                *args[2:],
+                **kwargs,
+            )
+            estimator_backend_result = SklearnBackend().after_call(
+                operator_context,
+                input_infos,
+                result,
+                self.mlinspect_non_data_func_args,
+            )
+            self.mlinspect_estimator_node_id = (
+                singleton.get_next_op_id()
+            )  # pylint: disable=attribute-defined-outside-init
+            dag_node = DagNode(
+                self.mlinspect_estimator_node_id,
+                BasicCodeLocation(
+                    self.mlinspect_caller_filename, self.mlinspect_lineno
+                ),
+                operator_context,
+                DagNodeDetails("Neural Network", []),
+                get_optional_code_info_or_none(
+                    self.mlinspect_optional_code_reference,
+                    self.mlinspect_optional_source_code,
+                ),
+            )
+            add_dag_node(
+                dag_node,
+                [train_data_dag_node, train_labels_dag_node],
+                estimator_backend_result,
+            )
+            if call_info_singleton_sklearn_inspection:
+                call_info_singleton_sklearn_inspection.parent_nodes = [
+                    dag_node
                 ]
-                input_infos = SklearnBackend().before_call(
-                    operator_context, input_dfs
-                )
-                result = original(
-                    self,
-                    train_data_result,
-                    train_labels_result,
-                    *args[2:],
-                    **kwargs,
-                )
-                estimator_backend_result = SklearnBackend().after_call(
-                    operator_context,
-                    input_infos,
-                    result,
-                    self.mlinspect_non_data_func_args,
-                )
-                self.mlinspect_estimator_node_id = (
-                    singleton.get_next_op_id()
-                )  # pylint: disable=attribute-defined-outside-init
-                dag_node = DagNode(
-                    self.mlinspect_estimator_node_id,
-                    BasicCodeLocation(
-                        self.mlinspect_caller_filename, self.mlinspect_lineno
-                    ),
-                    operator_context,
-                    DagNodeDetails("Neural Network", []),
-                    get_optional_code_info_or_none(
-                        self.mlinspect_optional_code_reference,
-                        self.mlinspect_optional_source_code,
-                    ),
-                )
-                add_dag_node(
-                    dag_node,
-                    [train_data_dag_node, train_labels_dag_node],
-                    estimator_backend_result,
-                )
-                if call_info_singleton_sklearn_inspection:
-                    call_info_singleton_sklearn_inspection.parent_nodes = [
-                        dag_node
-                    ]
-                if call_info_singleton_alibi:
-                    call_info_singleton_alibi.parent_nodes_ig = [dag_node]
-                    call_info_singleton_alibi.parent_nodes_ale = [dag_node]
-                if call_info_singleton_dale:
-                    call_info_singleton_dale.parent_nodes = [dag_node]
-                if call_info_singleton_dalex:
-                    call_info_singleton_dalex.parent_nodes = [dag_node]
-            else:
-                original(self, *args, **kwargs)
+            if call_info_singleton_alibi:
+                call_info_singleton_alibi.parent_nodes_ig = [dag_node]
+                call_info_singleton_alibi.parent_nodes_ale = [dag_node]
+            if call_info_singleton_dale:
+                call_info_singleton_dale.parent_nodes = [dag_node]
+            if call_info_singleton_dalex:
+                call_info_singleton_dalex.parent_nodes = [dag_node]
         else:
             original(self, *args, **kwargs)
         return self
@@ -2813,6 +2675,7 @@ class SklearnKerasClassifierPatching:
                 "score" in optional_source_code
                 or "shap_values" in optional_source_code
                 or "fit" in optional_source_code
+                or "predict" in optional_source_code
                 or "PartialDependenceDisplay" in optional_source_code
                 or "dalex" in optional_source_code
             ):

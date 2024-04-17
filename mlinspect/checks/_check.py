@@ -9,8 +9,7 @@ import dataclasses
 from enum import Enum
 from typing import Any, Iterable
 
-from mlinspect.inspections._inspection import Inspection
-from mlinspect.inspections._inspection_result import InspectionResult
+from mlinspect.inspections import Inspection, InspectionResult
 
 
 class CheckStatus(Enum):

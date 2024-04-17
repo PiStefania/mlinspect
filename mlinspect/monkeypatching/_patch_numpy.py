@@ -29,7 +29,7 @@ class NumpyRandomPatching:
 
     @gorilla.name("random")
     @gorilla.settings(allow_hit=True)
-    def patched_random(self, *args: Any, **kwargs: Any) -> Any:
+    def patched_random(*args: Any, **kwargs: Any) -> Any:
         """Patch for ('numpy.random', 'random')"""
         # pylint: disable=no-method-argument
         original = gorilla.get_original_attribute(random, "random")

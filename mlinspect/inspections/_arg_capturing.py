@@ -4,13 +4,13 @@ A simple inspection to capture important function call arguments like estimator 
 
 from typing import Any, Dict, Iterable, Union
 
-from . import (
+from ._inspection import Inspection
+from ._inspection_input import (
     InspectionInputDataSource,
     InspectionInputNAryOperator,
     InspectionInputSinkOperator,
     InspectionInputUnaryOperator,
 )
-from ._inspection import Inspection
 
 
 class ArgumentCapturing(Inspection):

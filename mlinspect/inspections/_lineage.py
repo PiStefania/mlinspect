@@ -47,14 +47,17 @@ class RowLineage(Inspection):
         operator_type_restriction: List[OperatorType] | None = None,
     ):
         self.row_count = row_count
-        self.operator_type_restriction: set[OperatorType] | None = None
-        self._inspection_id: int | tuple = self.row_count
+        self.operator_type_restriction: set[OperatorType] | None
+        self._inspection_id: int | tuple
         if operator_type_restriction is not None:
             self.operator_type_restriction = set(operator_type_restriction)
             self._inspection_id = (
                 self.row_count,
                 *self.operator_type_restriction,
             )
+        else:
+            self.operator_type_restriction = None
+            self._inspection_id = self.row_count
         self._operator_count: int = -1
         self._op_output: List | None = None
         self._op_lineage: List | None = None
@@ -94,22 +97,22 @@ class RowLineage(Inspection):
                 self._materialize_for_this_operator
                 and self.row_count == RowLineage.ALL_ROWS
             ):
-                for row_data_source in inspection_input.row_iterator:
+                for row in inspection_input.row_iterator:
                     current_count += 1
                     annotation = {
                         LineageId(self._operator_count, current_count)
                     }
-                    self._op_output.append(row_data_source.output)
+                    self._op_output.append(row.output)
                     self._op_lineage.append(annotation)
                     yield annotation
             elif self._materialize_for_this_operator:
-                for row_data_source in inspection_input.row_iterator:
+                for row in inspection_input.row_iterator:
                     current_count += 1
                     annotation = {
                         LineageId(self._operator_count, current_count)
                     }
                     if current_count < self.row_count:
-                        self._op_output.append(row_data_source.output)
+                        self._op_output.append(row.output)
                         self._op_lineage.append(annotation)
                     yield annotation
             else:
@@ -124,75 +127,75 @@ class RowLineage(Inspection):
                 self._materialize_for_this_operator
                 and self.row_count == RowLineage.ALL_ROWS
             ):
-                for row_nary in inspection_input.row_iterator:
+                for row in inspection_input.row_iterator:
                     current_count += 1
 
-                    annotation = set.union(*row_nary.annotation)
-                    self._op_output.append(row_nary.output)
+                    annotation = set.union(*row.annotation)
+                    self._op_output.append(row.output)
                     self._op_lineage.append(annotation)
                     yield annotation
             elif self._materialize_for_this_operator:
-                for row_nary in inspection_input.row_iterator:
+                for row in inspection_input.row_iterator:
                     current_count += 1
 
-                    annotation = set.union(*row_nary.annotation)
+                    annotation = set.union(*row.annotation)
                     if current_count < self.row_count:
-                        self._op_output.append(row_nary.output)
+                        self._op_output.append(row.output)
                         self._op_lineage.append(annotation)
                     yield annotation
             else:
-                for row_nary in inspection_input.row_iterator:
+                for row in inspection_input.row_iterator:
                     current_count += 1
-                    annotation = set.union(*row_nary.annotation)
+                    annotation = set.union(*row.annotation)
                     yield annotation
         elif isinstance(inspection_input, InspectionInputSinkOperator):
             if (
                 self._materialize_for_this_operator
                 and self.row_count == RowLineage.ALL_ROWS
             ):
-                for row_sink in inspection_input.row_iterator:
+                for row in inspection_input.row_iterator:
                     current_count += 1
 
-                    annotation = set.union(*row_sink.annotation)
+                    annotation = set.union(*row.annotation)
                     self._op_lineage.append(annotation)
                     yield annotation
             elif self._materialize_for_this_operator:
-                for row_sink in inspection_input.row_iterator:
+                for row in inspection_input.row_iterator:
                     current_count += 1
 
-                    annotation = set.union(*row_sink.annotation)
+                    annotation = set.union(*row.annotation)
                     if current_count < self.row_count:
                         self._op_lineage.append(annotation)
                     yield annotation
             else:
-                for row_sink in inspection_input.row_iterator:
+                for row in inspection_input.row_iterator:
                     current_count += 1
-                    annotation = set.union(*row_sink.annotation)
+                    annotation = set.union(*row.annotation)
                     yield annotation
         elif isinstance(inspection_input, InspectionInputUnaryOperator):
             if (
                 self._materialize_for_this_operator
                 and self.row_count == RowLineage.ALL_ROWS
             ):
-                for row_unary in inspection_input.row_iterator:
+                for row in inspection_input.row_iterator:
                     current_count += 1
-                    annotation = row_unary.annotation
-                    self._op_output.append(row_unary.output)
+                    annotation = row.annotation
+                    self._op_output.append(row.output)
                     self._op_lineage.append(annotation)
                     yield annotation
             elif self._materialize_for_this_operator:
-                for row_unary in inspection_input.row_iterator:
+                for row in inspection_input.row_iterator:
                     current_count += 1
-                    annotation = row_unary.annotation
+                    annotation = row.annotation
 
                     if current_count < self.row_count:
-                        self._op_output.append(row_unary.output)
+                        self._op_output.append(row.output)
                         self._op_lineage.append(annotation)
                     yield annotation
             else:
-                for row_unary in inspection_input.row_iterator:
+                for row in inspection_input.row_iterator:
                     current_count += 1
-                    annotation = row_unary.annotation
+                    annotation = row.annotation
                     yield annotation
         else:
             assert False

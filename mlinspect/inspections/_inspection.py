@@ -5,7 +5,7 @@ The Interface for the Inspection
 import abc
 from typing import Any, Iterable, Union
 
-from mlinspect.inspections._inspection_input import (
+from ._inspection_input import (
     InspectionInputDataSource,
     InspectionInputNAryOperator,
     InspectionInputSinkOperator,
