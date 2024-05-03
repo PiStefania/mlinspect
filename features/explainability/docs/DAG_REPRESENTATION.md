@@ -21,7 +21,7 @@ The following methods/packages are available for DAG representation:
   - `Explainer` with `model_parts` and `predict_parts`
 
 ## Implementation
-The explainability methods have been patched using the `gorilla` package. Dag nodes are created for each patched method and the results can be viewed under `results` module.
+The explainability methods have been patched using the `gorilla` package. Dag nodes are created for each patched method and the results can be viewed under each respective module.
 
 ## Example
 An example of how to use the DAG representation is shown below:

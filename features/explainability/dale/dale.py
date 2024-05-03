@@ -54,7 +54,7 @@ def compute_dale_parameters(
         dale_params = utils.compute_fe_parameters(
             data[:, feature],
             data_effect[:, feature],
-            limits,
+            limits[0],
             min_points_per_bin,
         )
         dale_params["method"] = method

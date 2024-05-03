@@ -544,7 +544,7 @@ class SklearnStandardScalerPatching:
         mlinspect_caller_filename: str | None = None,
         mlinspect_lineno: int | None = None,
         mlinspect_optional_code_reference: CodeReference | None = None,
-        mlinspect_optional_source_code: str | None = None,
+        mlinspect_optional_source_code: str = "unknown",
         mlinspect_fit_transform_active: bool = False,
     ) -> Any:
         """Patch for ('sklearn.preprocessing._data', 'StandardScaler')"""
@@ -603,48 +603,51 @@ class SklearnStandardScalerPatching:
         function_info = FunctionInfo(
             "sklearn.preprocessing._data", "StandardScaler"
         )
-        input_info = get_input_info(
-            args[0],
-            self.mlinspect_caller_filename,
-            self.mlinspect_lineno,
-            function_info,
-            self.mlinspect_optional_code_reference,
-            self.mlinspect_optional_source_code,
-        )
-
-        operator_context = OperatorContext(
-            OperatorType.TRANSFORMER, function_info
-        )
-        input_infos = SklearnBackend().before_call(
-            operator_context, [input_info.annotated_dfobject]
-        )
-        result = original(
-            self, input_infos[0].result_data, *args[1:], **kwargs
-        )
-        backend_result = SklearnBackend().after_call(
-            operator_context,
-            input_infos,
-            result,
-            self.mlinspect_non_data_func_args,
-        )
-        new_return_value = backend_result.annotated_dfobject.result_data
-        assert isinstance(new_return_value, MlinspectNdarray)
-        dag_node = DagNode(
-            singleton.get_next_op_id(),
-            BasicCodeLocation(
-                self.mlinspect_caller_filename, self.mlinspect_lineno
-            ),
-            operator_context,
-            DagNodeDetails("Standard Scaler: fit_transform", ["array"]),
-            get_optional_code_info_or_none(
+        if self.mlinspect_optional_source_code == "unknown":
+            new_return_value = original(self, *args, **kwargs)
+        else:
+            input_info = get_input_info(
+                args[0],
+                self.mlinspect_caller_filename,
+                self.mlinspect_lineno,
+                function_info,
                 self.mlinspect_optional_code_reference,
                 self.mlinspect_optional_source_code,
-            ),
-        )
-        add_dag_node(dag_node, [input_info.dag_node], backend_result)
-        self.mlinspect_fit_transform_active = (
-            False  # pylint: disable=attribute-defined-outside-init
-        )
+            )
+
+            operator_context = OperatorContext(
+                OperatorType.TRANSFORMER, function_info
+            )
+            input_infos = SklearnBackend().before_call(
+                operator_context, [input_info.annotated_dfobject]
+            )
+            result = original(
+                self, input_infos[0].result_data, *args[1:], **kwargs
+            )
+            backend_result = SklearnBackend().after_call(
+                operator_context,
+                input_infos,
+                result,
+                self.mlinspect_non_data_func_args,
+            )
+            new_return_value = backend_result.annotated_dfobject.result_data
+            assert isinstance(new_return_value, MlinspectNdarray)
+            dag_node = DagNode(
+                singleton.get_next_op_id(),
+                BasicCodeLocation(
+                    self.mlinspect_caller_filename, self.mlinspect_lineno
+                ),
+                operator_context,
+                DagNodeDetails("Standard Scaler: fit_transform", ["array"]),
+                get_optional_code_info_or_none(
+                    self.mlinspect_optional_code_reference,
+                    self.mlinspect_optional_source_code,
+                ),
+            )
+            add_dag_node(dag_node, [input_info.dag_node], backend_result)
+            self.mlinspect_fit_transform_active = (
+                False  # pylint: disable=attribute-defined-outside-init
+            )
         return new_return_value
 
     @gorilla.name("transform")
@@ -2675,7 +2678,10 @@ class SklearnKerasClassifierPatching:
                 "score" in optional_source_code
                 or "shap_values" in optional_source_code
                 or "fit" in optional_source_code
-                or "predict" in optional_source_code
+                or (
+                    "predict" in optional_source_code
+                    and "Explainer" not in optional_source_code
+                )
                 or "PartialDependenceDisplay" in optional_source_code
                 or "dalex" in optional_source_code
             ):

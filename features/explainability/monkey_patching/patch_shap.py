@@ -60,7 +60,6 @@ class ShapPatching:
         mlinspect_lineno: int | None = None,
         mlinspect_optional_code_reference: CodeReference | None = None,
         mlinspect_optional_source_code: str | None = None,
-        mlinspect_fit_transform_active: bool = False,
     ) -> Any:
         """Patch for ('shap', 'KernelExplainer')"""
         # pylint: disable=no-method-argument, attribute-defined-outside-init
@@ -74,7 +73,6 @@ class ShapPatching:
             mlinspect_optional_code_reference
         )
         self.mlinspect_optional_source_code = mlinspect_optional_source_code
-        self.mlinspect_fit_transform_active = mlinspect_fit_transform_active
         self.mlinspect_non_data_func_args = {
             "model": model,
             "data": data.view(np.ndarray),
@@ -177,7 +175,6 @@ class ShapPatching:
             input_infos = ExplainabilityBackend().before_call(
                 operator_context, input_dfs
             )
-
             result = original(
                 self, test_data_result.view(np.ndarray), *args[2:], **kwargs
             )

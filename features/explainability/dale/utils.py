@@ -381,7 +381,7 @@ def compute_loss(
 def compute_fe_parameters(
     data: np.ndarray,
     data_effect: np.ndarray,
-    limits: np.ndarray | tuple,
+    limits: np.ndarray,
     min_points_per_bin: np.ndarray,
 ) -> dict:
     dx = np.array([limits[i + 1] - limits[i] for i in range(len(limits) - 1)])

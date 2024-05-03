@@ -3535,6 +3535,8 @@ def test_keras_wrapper_score() -> None:
                 from tensorflow.keras.optimizers.experimental import SGD
                 import tensorflow as tf
                 import numpy as np
+                tf.random.set_seed(seed=42)
+                tf.keras.utils.set_random_seed(seed=42)
 
                 df = pd.DataFrame({'A': [0, 1, 2, 3], 'B': [0, 1, 2, 3], 'target': ['no', 'no', 'yes', 'yes']})
 
@@ -3571,78 +3573,78 @@ def test_keras_wrapper_score() -> None:
     expected_dag = networkx.DiGraph()
     expected_data_projection = DagNode(
         11,
-        BasicCodeLocation("<string-source>", 28),
+        BasicCodeLocation("<string-source>", 30),
         OperatorContext(
             OperatorType.PROJECTION,
             FunctionInfo("pandas.core.frame", "__getitem__"),
         ),
         DagNodeDetails("to ['A', 'B']", ["A", "B"]),
-        OptionalCodeInfo(CodeReference(28, 23, 28, 42), "test_df[['A', 'B']]"),
+        OptionalCodeInfo(CodeReference(30, 23, 30, 42), "test_df[['A', 'B']]"),
     )
     expected_test_data = DagNode(
         12,
-        BasicCodeLocation("<string-source>", 28),
+        BasicCodeLocation("<string-source>", 30),
         OperatorContext(
             OperatorType.TEST_DATA,
             FunctionInfo("scikeras.wrappers.KerasClassifier", "score"),
         ),
         DagNodeDetails(None, ["A", "B"]),
         OptionalCodeInfo(
-            CodeReference(28, 13, 28, 56),
+            CodeReference(30, 13, 30, 56),
             "clf.score(test_df[['A', 'B']], test_labels)",
         ),
     )
     expected_dag.add_edge(expected_data_projection, expected_test_data)
     expected_label_encode = DagNode(
         10,
-        BasicCodeLocation("<string-source>", 27),
+        BasicCodeLocation("<string-source>", 29),
         OperatorContext(
             OperatorType.TRANSFORMER,
             FunctionInfo("sklearn.preprocessing._encoders", "OneHotEncoder"),
         ),
         DagNodeDetails("One-Hot Encoder: fit_transform", ["array"]),
         OptionalCodeInfo(
-            CodeReference(27, 14, 27, 41), "OneHotEncoder(sparse=False)"
+            CodeReference(29, 14, 29, 41), "OneHotEncoder(sparse=False)"
         ),
     )
     expected_test_labels = DagNode(
         13,
-        BasicCodeLocation("<string-source>", 28),
+        BasicCodeLocation("<string-source>", 30),
         OperatorContext(
             OperatorType.TEST_LABELS,
             FunctionInfo("scikeras.wrappers.KerasClassifier", "score"),
         ),
         DagNodeDetails(None, ["array"]),
         OptionalCodeInfo(
-            CodeReference(28, 13, 28, 56),
+            CodeReference(30, 13, 30, 56),
             "clf.score(test_df[['A', 'B']], test_labels)",
         ),
     )
     expected_dag.add_edge(expected_label_encode, expected_test_labels)
     expected_classifier = DagNode(
         7,
-        BasicCodeLocation("<string-source>", 23),
+        BasicCodeLocation("<string-source>", 25),
         OperatorContext(
             OperatorType.ESTIMATOR,
             FunctionInfo("scikeras.wrappers.KerasClassifier", "fit"),
         ),
         DagNodeDetails("Neural Network", []),
         OptionalCodeInfo(
-            CodeReference(23, 6, 23, 123),
+            CodeReference(25, 6, 25, 123),
             "KerasClassifier(model=create_model, epochs=15, batch_size=1, "
             "verbose=0, input_dim=2, loss='categorical_crossentropy')",
         ),
     )
     expected_score = DagNode(
         14,
-        BasicCodeLocation("<string-source>", 28),
+        BasicCodeLocation("<string-source>", 30),
         OperatorContext(
             OperatorType.SCORE,
             FunctionInfo("scikeras.wrappers." "KerasClassifier", "score"),
         ),
         DagNodeDetails("Neural Network", []),
         OptionalCodeInfo(
-            CodeReference(28, 13, 28, 56),
+            CodeReference(30, 13, 30, 56),
             "clf.score(test_df[['A', 'B']], test_labels)",
         ),
     )
@@ -3690,7 +3692,7 @@ def test_keras_wrapper_score() -> None:
     lineage_output = inspection_results_data_source[RowLineage(3)]
     expected_lineage_df = DataFrame(
         [
-            [0.5, {LineageId(8, 0)}],
+            [0.0, {LineageId(8, 0)}],
         ],
         columns=["array", "mlinspect_lineage"],
     )

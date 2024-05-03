@@ -3,7 +3,6 @@
 import os
 import warnings
 
-import numpy as np
 import pandas as pd
 from scikeras.wrappers import KerasClassifier
 from sklearn.compose import ColumnTransformer
@@ -97,68 +96,14 @@ neural_net.fit(X_t_train, y_train)
 print("Mean accuracy: {}".format(neural_net.score(X_t_test, y_test)))
 # Introduce explainability
 
-# SHAP
-# import shap
-# shap.initjs()
-# explainer = shap.KernelExplainer(neural_net.predict, X_t_train)
-# shap_values = explainer.shap_values(X_t_test[:2], nsamples=100)
-# shap.force_plot(explainer.expected_value, shap_values, X_t_test[:2], feature_names=featurisation.get_feature_names_out())
-# shap.summary_plot(shap_values, X_t_test[:1], feature_names=featurisation.get_feature_names_out(), plot_type="bar")
-
 # LIME
-# import lime.lime_tabular
-# explainer = lime.lime_tabular.LimeTabularExplainer(X_t_train, mode='classification',
-#                                                    feature_names=featurisation.get_feature_names_out(),
-#                                                    class_names=["label"])
-# result = explainer.explain_instance(X_t_test[0], neural_net.predict_proba)
-# result.show_in_notebook()
+import lime.lime_tabular
 
-# PDP
-# from sklearn.inspection import PartialDependenceDisplay
-# display_pdp = PartialDependenceDisplay.from_estimator(estimator=neural_net, X=X_t_train, features=[1, 2], kind="average")
-
-# ICE
-# from sklearn.inspection import PartialDependenceDisplay
-# display_ice = PartialDependenceDisplay.from_estimator(estimator=neural_net, X=X_t_train, features=[1, 2], kind="individual")
-
-
-# IG
-# from alibi.explainers import IntegratedGradients
-# ig = IntegratedGradients(model=neural_net.model_,
-#                          method="gausslegendre",
-#                          n_steps=50,
-#                          internal_batch_size=100)
-# explanation = ig.explain(X=X_t_test[:1], baselines=None, target=0)
-
-# ALE
-# from alibi.explainers import ALE
-# ale_explainer = ALE(neural_net.predict_proba, feature_names=featurisation.get_feature_names_out(), target_names=["label"])
-# explanation = ale_explainer.explain(X_t_train)
-
-#
-# DALE
-# from features.explainability.dale.dale import DALE
-# import tensorflow as tf
-#
-# def model_grad(input):
-#     x_inp = tf.cast(input, tf.float32)
-#     with tf.GradientTape() as tape:
-#         tape.watch(x_inp)
-#         preds = neural_net.model_(x_inp)
-#     grads = tape.gradient(preds, x_inp)
-#     return grads.numpy()
-#
-# dale = DALE(data=X_t_test, model=neural_net, model_jac=model_grad)
-# dale.fit()
-# explanations = dale.eval(x=X_t_train, s=0)
-
-# DALEX
-import dalex
-
-dalex_explainer = dalex.Explainer(
-    neural_net, X_t_train, y_train, predict_function=KerasClassifier.predict
+explainer = lime.lime_tabular.LimeTabularExplainer(
+    X_t_train,
+    mode="classification",
+    feature_names=featurisation.get_feature_names_out(),
+    class_names=["label"],
 )
-explanation = dalex_explainer.model_parts()
-train_explanation = explanation.result
-df = pd.DataFrame([X_t_test.view(np.ndarray)[0]], index=["first_row"])
-test_explanation = dalex_explainer.predict_parts(df, label=df.index[0]).result
+result = explainer.explain_instance(X_t_test[0], neural_net.predict_proba)
+result.show_in_notebook()
