@@ -2674,10 +2674,15 @@ class SklearnKerasClassifierPatching:
                 "scikeras.wrappers.KerasClassifier", "predict"
             )
             # Test data
+            # TODO: make it more easily readable
+            if "fit" in optional_source_code:
+                if len(args) > 1:
+                    return original(self, X=args[1], **kwargs)
+                else:
+                    return original(self, X=args[0], **kwargs)
             if (
                 "score" in optional_source_code
                 or "shap_values" in optional_source_code
-                or "fit" in optional_source_code
                 or (
                     "predict" in optional_source_code
                     and "Explainer" not in optional_source_code
