@@ -182,7 +182,10 @@ class Explainer(Inspection):
                     import dalex as dx
 
                     explainer = dx.Explainer(
-                        model, self.explainer_input, self.train_labels
+                        model,
+                        self.explainer_input,
+                        self.train_labels,
+                        predict_function=model.predict,
                     )
                     explanation = explainer.model_parts()
                     train_explanation = explanation.result
@@ -190,7 +193,9 @@ class Explainer(Inspection):
                         [self.test_input[0]], index=["first_row"]
                     )
                     test_explanation = explainer.predict_parts(
-                        df, label=df.index[0]
+                        df,
+                        label=df.index[0],
+                        type="break_down",
                     ).result
                     self._results[ExplainabilityMethodsEnum.DALEX] = {
                         "explainer": explainer,
