@@ -162,3 +162,4 @@ class InspectionInputSinkOperator:
     inputs_columns: List[ColumnInfo]
     row_iterator: Iterable[InspectionRowSinkOperator]
     non_data_function_args: Dict[str, Any]
+    self_output: Any

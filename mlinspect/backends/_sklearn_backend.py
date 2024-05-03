@@ -106,6 +106,7 @@ class SklearnBackend(Backend):
                 input_infos[1].result_data,
                 input_infos[1].result_annotation,
                 non_data_function_args,
+                return_value,
             )
         elif operator_context.operator == OperatorType.SCORE:
             return_value_be = execute_inspection_visits_nary_op(
@@ -149,6 +150,7 @@ def execute_inspection_visits_sink_op(
     target: Any,
     target_annotation: Any,
     non_data_function_args: Any,
+    return_value: Any,
 ) -> BackendResult:
     """Execute inspections"""
     # pylint: disable=too-many-arguments
@@ -161,6 +163,7 @@ def execute_inspection_visits_sink_op(
         target_annotation,
         operator_context,
         non_data_function_args,
+        return_value,
     )
     annotation_iterators = execute_visits(iterators_for_inspections)
     return_value = store_inspection_outputs(annotation_iterators, None)

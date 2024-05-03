@@ -20,7 +20,7 @@ from mlinspect.inspections import (
     InspectionInputSinkOperator,
     InspectionInputUnaryOperator,
 )
-from mlinspect.inspections._inspection_input import InspectionRowNAryOperator
+from mlinspect.inspections._inspection_input import InspectionRowSinkOperator
 
 
 class Explainer(Inspection):
@@ -63,8 +63,8 @@ class Explainer(Inspection):
             # TODO: add more classifiers
             model: KerasClassifier | None = None
             for row in inspection_input.row_iterator:
-                if isinstance(row, InspectionRowNAryOperator):
-                    model = row.output[0]
+                if isinstance(row, InspectionRowSinkOperator):
+                    model = inspection_input.self_output
             if not model:
                 yield None
             if model:

@@ -372,6 +372,7 @@ def iter_input_annotation_output_sink_op(
     target_annotation: Any,
     operator_context: OperatorContext,
     non_data_function_args: Any,
+    return_value: Any,
 ) -> List | List[InspectionInputSinkOperator]:
     """
     Create an efficient iterator for the inspection input when there is no output, e.g., estimators.
@@ -407,6 +408,7 @@ def iter_input_annotation_output_sink_op(
             inputs_columns,
             row_iterator,
             non_data_function_args,
+            return_value,
         )
         inspection_iterators.append(inspection_iterator)
 
