@@ -1,7 +1,9 @@
 """
 Inserts function call capturing into the DAG
 """
+
 import ast
+from typing import Any
 
 
 class CallCaptureTransformer(ast.NodeTransformer):
@@ -9,7 +11,7 @@ class CallCaptureTransformer(ast.NodeTransformer):
     ast.NodeTransformer to replace calls with captured calls
     """
 
-    def visit_Call(self, node):
+    def visit_Call(self, node: ast.Call) -> Any:
         """
         Instrument all function calls
         """
@@ -18,7 +20,7 @@ class CallCaptureTransformer(ast.NodeTransformer):
         self.call_add_set_code_reference(node)
         return node
 
-    def visit_Subscript(self, node):
+    def visit_Subscript(self, node: Any) -> Any:
         """
         Instrument all subscript calls
         """
@@ -34,7 +36,7 @@ class CallCaptureTransformer(ast.NodeTransformer):
         return node
 
     @staticmethod
-    def call_add_set_code_reference(node):
+    def call_add_set_code_reference(node: Any) -> None:
         """
         When a method is called, capture the arguments of the method before executing it
         """
@@ -44,43 +46,62 @@ class CallCaptureTransformer(ast.NodeTransformer):
         # Here we can consider instrumenting only functions we patch based on the name
         #  But the detection based on the static function name is unreliable, so we will skip this for now
         kwargs = node.keywords
-        call_node = CallCaptureTransformer.create_set_code_reference_node_call(node, kwargs)
+        call_node = CallCaptureTransformer.create_set_code_reference_node_call(
+            node, kwargs
+        )
         new_kwargs_node = ast.keyword(value=call_node, arg=None)
         node.keywords = [new_kwargs_node]
 
     @staticmethod
-    def create_set_code_reference_node_call(node, kwargs):
+    def create_set_code_reference_node_call(
+        node: Any, kwargs: Any
+    ) -> ast.Call:
         """
         Create the set_code_reference function call ast node that then gets inserted into the AST
         """
-        call_node = ast.Call(func=ast.Name(id='set_code_reference_call', ctx=ast.Load()),
-                             args=[ast.Constant(n=node.lineno, kind=None),
-                                   ast.Constant(n=node.col_offset, kind=None),
-                                   ast.Constant(n=node.end_lineno, kind=None),
-                                   ast.Constant(n=node.end_col_offset, kind=None)],
-                             keywords=kwargs)
+        call_node = ast.Call(
+            func=ast.Name(id="set_code_reference_call", ctx=ast.Load()),
+            args=[
+                ast.Constant(n=node.lineno, kind=None),
+                ast.Constant(n=node.col_offset, kind=None),
+                ast.Constant(n=node.end_lineno, kind=None),
+                ast.Constant(n=node.end_col_offset, kind=None),
+            ],
+            keywords=kwargs,
+        )
         return call_node
 
     @staticmethod
-    def create_set_code_reference_node_subscript(node, kwargs):
+    def create_set_code_reference_node_subscript(
+        node: Any, kwargs: Any
+    ) -> ast.Call:
         """
         Create the set_code_reference function call ast node that then gets inserted into the AST
         """
-        call_node = ast.Call(func=ast.Name(id='set_code_reference_subscript', ctx=ast.Load()),
-                             args=[ast.Constant(n=node.lineno, kind=None),
-                                   ast.Constant(n=node.col_offset, kind=None),
-                                   ast.Constant(n=node.end_lineno, kind=None),
-                                   ast.Constant(n=node.end_col_offset, kind=None),
-                                   kwargs],
-                             keywords=[])
+        call_node = ast.Call(
+            func=ast.Name(id="set_code_reference_subscript", ctx=ast.Load()),
+            args=[
+                ast.Constant(n=node.lineno, kind=None),
+                ast.Constant(n=node.col_offset, kind=None),
+                ast.Constant(n=node.end_lineno, kind=None),
+                ast.Constant(n=node.end_col_offset, kind=None),
+                kwargs,
+            ],
+            keywords=[],
+        )
         return call_node
 
     @staticmethod
-    def subscript_add_set_code_reference(node, code_reference_from_node):
+    def subscript_add_set_code_reference(
+        node: Any, code_reference_from_node: Any
+    ) -> None:
         """
         When the __getitem__ method of some object is called, capture the arguments of the method before executing it
         """
         subscript_arg = node.slice
-        call_node = CallCaptureTransformer.create_set_code_reference_node_subscript(code_reference_from_node,
-                                                                                    subscript_arg)
+        call_node = (
+            CallCaptureTransformer.create_set_code_reference_node_subscript(
+                code_reference_from_node, subscript_arg
+            )
+        )
         node.slice = call_node

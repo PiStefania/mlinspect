@@ -20,7 +20,7 @@ numpy = "1.24.3"
 six = "1.16.0"
 nbformat = "5.10.4"
 nbconvert = "7.16.4"
-ipython = "8.24.0"
+ipython = "8.18.1"
 astpretty = "3.0.0"
 astmonkey = "0.3.6"
 networkx = "3.3"
@@ -33,23 +33,27 @@ astunparse = "1.6.3"
 setuptools = "69.5.1"
 scipy = "~1.12.0"
 statsmodels = "0.14.2"
+lime = "^0.2.0.1"
+alibi = "^0.9.4"
+pyale = "^1.1.3"
+dalex = "^1.7.0"
+shap = "0.45.1"
+scikeras = "0.12.0"
+gensim = "4.3.2"
+tensorflow = "2.14.0"
+keras = "2.14.0"
 
 [tool.poetry.group.dev.dependencies]
 pylint = "3.1.0"
 pytest = "8.2.0"
-pytest-pylint = "0.21.0"
-pytest-runner = "6.0.1"
 pytest-cov = "5.0.0"
-pytest-pycharm = "0.7.0"
 pytest-mock = "3.14.0"
-gensim = "4.3.2"
-tensorflow = "2.13.1"
-keras = "2.13.1"
 jupyter = "1.0.0"
 importnb = "2023.11.1"
 seaborn = "0.13.2"
-shap="0.45.1"
-scikeras="0.12.0"
+pre-commit = "^3.6.2"
+greenlet = "^3.0.3"
+hadolint-py = { git = "https://github.com/AleksaC/hadolint-py.git", tag = "v2.12.0" }
 
 [build-system]
 requires = ["poetry-core"]
@@ -57,5 +61,313 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.pytest.ini_options]
-addopts = "--pylint --pylint-rcfile=./pylintrc --cov=mlinspect --cov-report=xml"
-testpaths = ["test"]
+addopts = "--cov=mlinspect --cov-report=xml"
+python_files = ["test_*.py"]
+
+[tool.isort]
+line_length = 79
+known_local_folder = ["mlinspect", ]
+src_paths = ["demo", "mlinspect", "experiments", "features", "example_pipelines"]
+multi_line_output = 3
+include_trailing_comma = 'True'
+known_first_party = 'lumi'
+force_grid_wrap = 0
+combine_as_imports = 'True'
+
+[tool.black]
+line-length = 79
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.flakeheaven.plugins]
+pyflakes = ["+*"]
+pycodestyle = ["+*", "-E203", "-E266", "-E501", "-W503", "-E701", "-E704", "-E402"]
+
+[tool.flakeheaven.exceptions."**/__init__.py"]
+pyflakes = ["-F401"] # Unused imports in __init__.py
+
+[tool.pycodestyle]
+max-line-length = 88
+exclude = [".tox", ".git", "docs"]
+
+[tool.coverage.run]
+omit = ["*tests*", "*developer_tools*", "*__init__*"]
+concurrency = ["greenlet", "thread"]
+include = ["/app/src/*", ]
+
+[tool.coverage.report]
+precision = 2
+
+[tool.pylint.master]
+persistent = "no"
+load-plugins = ["pylint_pydantic"]
+jobs = 1
+unsafe-load-any-extension = "no"
+extension-pkg-whitelist = []
+optimize-ast = "no"
+
+[tool.pylint.messages_control]
+confidence = []
+disable = "all"
+enable = ["import-error",
+    "undefined-variable",
+    "unused-variable",
+    "relative-import",
+    "redefined-builtin",
+    "import-self",
+    "reimported",
+    "wildcard-import",
+    "misplaced-future",
+    "deprecated-module",
+    "unpacking-non-sequence",
+    "invalid-all-object",
+    "undefined-all-variable",
+    "used-before-assignment",
+    "cell-var-from-loop",
+    "global-variable-undefined",
+    "redefine-in-handler",
+    "unused-import",
+    "global-variable-not-assigned",
+    "undefined-loop-variable",
+    "global-statement",
+    "global-at-module-level",
+    "bad-open-mode",
+    "redundant-unittest-assert",
+    "boolean-datetime",
+    "deprecated-method",
+    "anomalous-unicode-escape-in-string",
+    "anomalous-backslash-in-string",
+    "not-in-loop",
+    "continue-in-finally",
+    "abstract-class-instantiated",
+    "star-needs-assignment-target",
+    "duplicate-argument-name",
+    "return-in-init",
+    "too-many-star-expressions",
+    "nonlocal-and-global",
+    "return-outside-function",
+    "return-arg-in-generator",
+    "invalid-star-assignment-target",
+    "bad-reversed-sequence",
+    "nonexistent-operator",
+    "yield-outside-function",
+    "init-is-generator",
+    "nonlocal-without-binding",
+    "lost-exception",
+    "assert-on-tuple",
+    "dangerous-default-value",
+    "duplicate-key",
+    "useless-else-on-loop",
+    "confusing-with-statement",
+    "unnecessary-lambda",
+    "pointless-statement",
+    "pointless-string-statement",
+    "unnecessary-pass",
+    "unreachable",
+    "eval-used",
+    "exec-used",
+    "using-constant-test",
+    "bad-super-call",
+    "expression-not-assigned",
+    "missing-super-argument",
+    "slots-on-old-class",
+    "super-on-old-class",
+    "property-on-old-class",
+    "not-an-iterable",
+    "not-a-mapping",
+    "format-needs-mapping",
+    "truncated-format-string",
+    "missing-format-string-key",
+    "mixed-format-string",
+    "too-few-format-args",
+    "bad-str-strip-call",
+    "too-many-format-args",
+    "bad-format-character",
+    "format-combined-specification",
+    "bad-format-string-key",
+    "bad-format-string",
+    "missing-format-attribute",
+    "missing-format-argument-key",
+    "unused-format-string-argument",
+    "unused-format-string-key",
+    "invalid-format-index",
+    "bad-indentation",
+    "mixed-indentation",
+    "unnecessary-semicolon",
+    "lowercase-l-suffix",
+    "invalid-encoded-data",
+    "unpacking-in-except",
+    "import-star-module-level",
+    "long-suffix",
+    "old-octal-literal",
+    "old-ne-operator",
+    "backtick",
+    "old-raise-syntax",
+    "dict-iter-method",
+    "dict-view-method",
+    "raising-string",
+    "using-cmp-argument",
+    "cmp-method",
+    "coerce-method",
+    "delslice-method",
+    "getslice-method",
+    "hex-method",
+    "nonzero-method",
+    "t-method",
+    "setslice-method",
+    "logging-format-truncated",
+    "logging-too-few-args",
+    "logging-too-many-args",
+    "logging-unsupported-format",
+    "logging-format-interpolation",
+    "invalid-unary-operand-type",
+    "unsupported-binary-operation",
+    "not-callable",
+    "redundant-keyword-arg",
+    "assignment-from-no-return",
+    "assignment-from-none",
+    "not-context-manager",
+    "repeated-keyword",
+    "missing-kwoa",
+    "no-value-for-parameter",
+    "invalid-sequence-index",
+    "invalid-slice-index",
+    "unexpected-keyword-arg",
+    "unsupported-membership-test",
+    "unsubscriptable-object",
+    "access-member-before-definition",
+    "method-hidden",
+    "assigning-non-slot",
+    "duplicate-bases",
+    "inconsistent-mro",
+    "inherit-non-class",
+    "invalid-slots",
+    "invalid-slots-object",
+    "no-method-argument",
+    "unexpected-special-method-signature",
+    "non-iterator-returned",
+    "arguments-differ",
+    "bad-staticmethod-argument",
+    "non-parent-init-called",
+    "bad-except-order",
+    "catching-non-exception",
+    "bad-exception-context",
+    "notimplemented-raised",
+    "raising-bad-type",
+    "raising-non-exception",
+    "misplaced-bare-raise",
+    "duplicate-except",
+    "broad-except",
+    "nonstandard-exception",
+    "binary-op-exception",
+    "bare-except",
+    "not-async-context-manager",
+    "yield-inside-async-function",
+    "unused-wildcard-import"
+]
+
+[tool.pylint.reports]
+output-format = "colorized"
+files-output = "no"
+reports = "no"
+msg-template = '[{msg_id} {symbol}] {msg} File: {path}, line {line}, in {obj}'
+
+[tool.pylint.logging]
+logging-modules = "logging"
+
+[tool.pylint.format]
+max-line-length = 79
+ignore-long-lines = '^\s*(# )?<?https?://\S+>?$'
+single-line-if-stmt = "no"
+no-space-check = ["trailing-comma", "dict-separator"]
+max-module-lines = 1000
+indent-string = '    '
+indent-after-paren = 4
+expected-line-ending-format = "LF"
+
+[tool.pylint.typecheck]
+ignore-mixin-members = "yes"
+ignored-classes = "DictField"
+
+[tool.pylint.variables]
+init-import = "no"
+dummy-variables-rgx = "_$|dummy"
+callbacks = ["cb_", "_cb"]
+
+[tool.pylint.similarities]
+min-similarity-lines = 4
+ignore-comments = "yes"
+ignore-docstrings = "yes"
+ignore-imports = "no"
+
+[tool.pylint.spelling]
+spelling-store-unknown-words = "no"
+
+[tool.pylint.miscellaneous]
+notes = ["FIXME", "XXX", "TODO"]
+
+[tool.pylint.basic]
+good-names = ["i", "j", "k", "ex", "Run", "_"]
+bad-names = ["foo", "bar", "baz", "toto", "tutu", "tata"]
+include-naming-hint = "no"
+function-rgx = "[a-z_][a-z0-9_]{2,30}$"
+function-name-hint = "[a-z_][a-z0-9_]{2,30}$"
+variable-rgx = "[a-z_][a-z0-9_]{2,30}$"
+variable-name-hint = "[a-z_][a-z0-9_]{2,30}$"
+const-rgx = "(([A-Z_][A-Z0-9_]*)|(__.*__))$"
+const-name-hint = "(([A-Z_][A-Z0-9_]*)|(__.*__))$"
+attr-rgx = "[a-z_][a-z0-9_]{2,30}$"
+attr-name-hint = "[a-z_][a-z0-9_]{2,30}$"
+argument-rgx = "[a-z_][a-z0-9_]{2,30}$"
+argument-name-hint = "[a-z_][a-z0-9_]{2,30}$"
+class-attribute-rgx = "([A-Za-z_][A-Za-z0-9_]{2,30}|(__.*__))$"
+class-attribute-name-hint = "([A-Za-z_][A-Za-z0-9_]{2,30}|(__.*__))$"
+inlinevar-rgx = "[A-Za-z_][A-Za-z0-9_]*$"
+inlinevar-name-hint = "[A-Za-z_][A-Za-z0-9_]*$"
+class-rgx = "[A-Z_][a-zA-Z0-9]+$"
+class-name-hint = "[A-Z_][a-zA-Z0-9]+$"
+module-rgx = "(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$"
+module-name-hint = "(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$"
+method-rgx = "[a-z_][a-z0-9_]{2,30}$"
+method-name-hint = "[a-z_][a-z0-9_]{2,30}$"
+no-docstring-rgx = "^_"
+docstring-min-length = -1
+
+[tool.pylint.elif]
+max-nested-blocks = 5
+
+[tool.pylint.imports]
+deprecated-modules = ["regsub", "TERMIOS", "Bastion", "rexec"]
+
+[tool.pylint.design]
+max-args = 5
+ignored-argument-names = "_.*"
+max-locals = 15
+max-returns = 6
+max-branches = 12
+max-statements = 50
+max-parents = 7
+max-attributes = 7
+min-public-methods = 2
+max-public-methods = 20
+max-bool-expr = 5
+
+[tool.pylint.classes]
+defining-attr-methods = ["__init__", "__new__", "setUp"]
+valid-classmethod-first-arg = "cls"
+valid-metaclass-classmethod-first-arg = "mcs"
+exclude-protected = ["_asdict", "_fields", "_replace", "_source", "_make"]
+
+[tool.pylint.exceptions]
+overgeneral-exceptions = "Exception"

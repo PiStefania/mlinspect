@@ -1,14 +1,20 @@
 """
 A simple inspection for lineage tracking
 """
+
 import dataclasses
-from typing import Iterable, List
+from typing import Any, Iterable, List, Union
 
 from pandas import DataFrame, Series
 
 from mlinspect.inspections._inspection import Inspection
-from mlinspect.inspections._inspection_input import InspectionInputUnaryOperator, \
-    InspectionInputSinkOperator, InspectionInputDataSource, InspectionInputNAryOperator, OperatorType
+from mlinspect.inspections._inspection_input import (
+    InspectionInputDataSource,
+    InspectionInputNAryOperator,
+    InspectionInputSinkOperator,
+    InspectionInputUnaryOperator,
+    OperatorType,
+)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -16,6 +22,7 @@ class LineageId:
     """
     A lineage id class
     """
+
     operator_id: int
     row_id: int
 
@@ -24,6 +31,7 @@ class RowLineage(Inspection):
     """
     A simple inspection for row-level lineage tracking
     """
+
     # TODO: Add an option to pass a list of lineage ids to this inspection. Then it materializes all related tuples.
     #  To do this efficiently, we do not want to do expensive membership tests. We can collect all base LineageIds
     #  in a set and then it is enough to check for set memberships in InspectionInputDataSource inspection inputs.
@@ -33,31 +41,51 @@ class RowLineage(Inspection):
 
     ALL_ROWS = -1
 
-    def __init__(self, row_count: int, operator_type_restriction: List[OperatorType] = None):
+    def __init__(
+        self,
+        row_count: int,
+        operator_type_restriction: List[OperatorType] | None = None,
+    ):
         self.row_count = row_count
+        self.operator_type_restriction: set[OperatorType] | None
+        self._inspection_id: int | tuple
         if operator_type_restriction is not None:
             self.operator_type_restriction = set(operator_type_restriction)
-            self._inspection_id = (self.row_count, *self.operator_type_restriction)
+            self._inspection_id = (
+                self.row_count,
+                *self.operator_type_restriction,
+            )
         else:
             self.operator_type_restriction = None
             self._inspection_id = self.row_count
-        self._operator_count = -1
-        self._op_output = None
-        self._op_lineage = None
-        self._output_columns = None
+        self._operator_count: int = -1
+        self._op_output: List | None = None
+        self._op_lineage: List | None = None
+        self._output_columns: List[str] | None = None
         self._is_sink = False
-        self._materialize_for_this_operator = None
+        self._materialize_for_this_operator: bool | None = None
 
-    def visit_operator(self, inspection_input) -> Iterable[any]:
+    def visit_operator(
+        self,
+        inspection_input: Union[
+            InspectionInputDataSource,
+            InspectionInputUnaryOperator,
+            InspectionInputNAryOperator,
+            InspectionInputSinkOperator,
+        ],
+    ) -> Iterable[Any]:
         """Visit an operator, generate row index number annotations and check whether they get propagated correctly"""
         # pylint: disable=too-many-branches, too-many-statements
         self._operator_count += 1
         self._op_output = []
         self._op_lineage = []
         current_count = -1
-        self._materialize_for_this_operator = (self.operator_type_restriction is None) or \
-                                              (inspection_input.operator_context.operator
-                                               in self.operator_type_restriction)
+        self._materialize_for_this_operator = (
+            self.operator_type_restriction is None
+        ) or (
+            inspection_input.operator_context.operator
+            in self.operator_type_restriction
+        )
 
         if not isinstance(inspection_input, InspectionInputSinkOperator):
             self._output_columns = inspection_input.output_columns.fields
@@ -65,17 +93,24 @@ class RowLineage(Inspection):
             self._is_sink = True
 
         if isinstance(inspection_input, InspectionInputDataSource):
-            if self._materialize_for_this_operator and self.row_count == RowLineage.ALL_ROWS:
+            if (
+                self._materialize_for_this_operator
+                and self.row_count == RowLineage.ALL_ROWS
+            ):
                 for row in inspection_input.row_iterator:
                     current_count += 1
-                    annotation = {LineageId(self._operator_count, current_count)}
+                    annotation = {
+                        LineageId(self._operator_count, current_count)
+                    }
                     self._op_output.append(row.output)
                     self._op_lineage.append(annotation)
                     yield annotation
             elif self._materialize_for_this_operator:
                 for row in inspection_input.row_iterator:
                     current_count += 1
-                    annotation = {LineageId(self._operator_count, current_count)}
+                    annotation = {
+                        LineageId(self._operator_count, current_count)
+                    }
                     if current_count < self.row_count:
                         self._op_output.append(row.output)
                         self._op_lineage.append(annotation)
@@ -83,10 +118,15 @@ class RowLineage(Inspection):
             else:
                 for _ in inspection_input.row_iterator:
                     current_count += 1
-                    annotation = {LineageId(self._operator_count, current_count)}
+                    annotation = {
+                        LineageId(self._operator_count, current_count)
+                    }
                     yield annotation
         elif isinstance(inspection_input, InspectionInputNAryOperator):
-            if self._materialize_for_this_operator and self.row_count == RowLineage.ALL_ROWS:
+            if (
+                self._materialize_for_this_operator
+                and self.row_count == RowLineage.ALL_ROWS
+            ):
                 for row in inspection_input.row_iterator:
                     current_count += 1
 
@@ -109,7 +149,10 @@ class RowLineage(Inspection):
                     annotation = set.union(*row.annotation)
                     yield annotation
         elif isinstance(inspection_input, InspectionInputSinkOperator):
-            if self._materialize_for_this_operator and self.row_count == RowLineage.ALL_ROWS:
+            if (
+                self._materialize_for_this_operator
+                and self.row_count == RowLineage.ALL_ROWS
+            ):
                 for row in inspection_input.row_iterator:
                     current_count += 1
 
@@ -130,7 +173,10 @@ class RowLineage(Inspection):
                     annotation = set.union(*row.annotation)
                     yield annotation
         elif isinstance(inspection_input, InspectionInputUnaryOperator):
-            if self._materialize_for_this_operator and self.row_count == RowLineage.ALL_ROWS:
+            if (
+                self._materialize_for_this_operator
+                and self.row_count == RowLineage.ALL_ROWS
+            ):
                 for row in inspection_input.row_iterator:
                     current_count += 1
                     annotation = row.annotation
@@ -154,7 +200,7 @@ class RowLineage(Inspection):
         else:
             assert False
 
-    def get_operator_annotation_after_visit(self) -> any:
+    def get_operator_annotation_after_visit(self) -> Any:
         if not self._materialize_for_this_operator:
             result = None
         elif not self._is_sink:
@@ -172,5 +218,5 @@ class RowLineage(Inspection):
         return result
 
     @property
-    def inspection_id(self):
+    def inspection_id(self) -> Any | None:
         return self._inspection_id

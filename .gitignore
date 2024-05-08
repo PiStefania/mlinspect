@@ -136,3 +136,10 @@ dmypy.json
 
 # VS Code
 .vscode
+
+# flakeheaven
+.flakeheaven_cache/
+
+# hadolint
+qemu*
+core

@@ -23,15 +23,15 @@ Prerequisite: Python 3.9
 
     `Linux: ` `apt-get install graphviz` <br>
     `MAC OS: ` `brew install graphviz` <br>
-	
-4. Install pip dependencies 
+
+4. Install pip dependencies
 
     `SETUPTOOLS_USE_DISTUTILS=stdlib pip install -e .[dev]` <br>
 
 5. To ensure everything works, you can run the tests (without graphviz, the visualisation test will fail)
 
     `python setup.py test` <br>
-    
+
 ## How to use mlinspect
 mlinspect makes it easy to analyze your pipeline and automatically check for common issues.
 ```python
@@ -57,6 +57,12 @@ We prepared a [demo notebook](demo/feature_overview/feature_overview.ipynb) to s
 
 ## Supported libraries and API functions
 mlinspect already supports a selection of API functions from `pandas` and `scikit-learn`. Extending mlinspect to support more and more API functions and libraries will be an ongoing effort. However, mlinspect won't just crash when it encounters functions it doesn't recognize yet. For more information, please see [here](mlinspect/monkeypatching/README.md).
+
+## Explainability Feature
+In this project, explainability methods have been integrated in the mlinspect tool.
+The methods that have been patched are a sample of what it can be actually integrated. However, more explanations can be viewed:
+- [Dag Representation](features/explainability/docs/DAG_REPRESENTATION.md)
+- [Inspection](features/explainability/docs/INSPECTION.md)
 
 ## Notes
 * For debugging in PyCharm, set the pytest flag `--no-cov` ([Link](https://stackoverflow.com/questions/34870962/how-to-debug-py-test-in-pycharm-when-coverage-is-enabled))

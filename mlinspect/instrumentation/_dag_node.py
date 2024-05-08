@@ -1,8 +1,9 @@
 """
 The Nodes used in the DAG as nodes for the networkx.DiGraph
 """
+
 import dataclasses
-from typing import List
+from typing import Any, List
 
 from mlinspect.inspections._inspection_input import OperatorContext
 
@@ -12,6 +13,7 @@ class CodeReference:
     """
     Identifies a function call in the user pipeline code
     """
+
     lineno: int
     col_offset: int
     end_lineno: int
@@ -23,6 +25,7 @@ class BasicCodeLocation:
     """
     Basic information that can be collected even if `set_code_reference_tracking` is disabled
     """
+
     caller_filename: str
     lineno: int
 
@@ -32,6 +35,7 @@ class OptionalCodeInfo:
     """
     The additional information collected by mlinspect if `set_code_reference_tracking` is enabled
     """
+
     code_reference: CodeReference
     source_code: str
 
@@ -41,8 +45,9 @@ class DagNodeDetails:
     """
     Additional info about the DAG node
     """
-    description: str or None = None
-    columns: List[str] = None
+
+    description: str | None = None
+    columns: List[str] | None = None
 
 
 @dataclasses.dataclass
@@ -55,7 +60,7 @@ class DagNode:
     code_location: BasicCodeLocation
     operator_info: OperatorContext
     details: DagNodeDetails
-    optional_code_info: OptionalCodeInfo or None = None
+    optional_code_info: OptionalCodeInfo | None = None
 
-    def __hash__(self):
+    def __hash__(self) -> Any:
         return hash(self.node_id)
