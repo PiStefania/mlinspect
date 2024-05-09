@@ -61,3 +61,10 @@ EXPLAINABILITY_LIME_PY = os.path.join(
     "pipelines",
     "adult_simple_with_explainability.py",
 )
+EXPLAINABILITY_HEALTHCARE_PY = os.path.join(
+    str(get_project_root()),
+    "features",
+    "explainability",
+    "examples",
+    "test_pipeline.py",
+)
