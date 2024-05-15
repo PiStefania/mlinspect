@@ -1,4 +1,3 @@
-import os
 from inspect import cleandoc
 
 import networkx
@@ -18,8 +17,6 @@ from mlinspect import (
     OptionalCodeInfo,
     PipelineInspector,
 )
-from mlinspect.utils import get_project_root
-from mlinspect.visualisation import save_fig_to_path
 
 
 def test_lime_tabular_explainer() -> None:
@@ -69,16 +66,6 @@ def test_lime_tabular_explainer() -> None:
         .add_custom_monkey_patching_module(patch_lime)
         .execute()
     )
-    extracted_dag = inspector_result.dag
-    filename = os.path.join(
-        str(get_project_root()),
-        "features",
-        "explainability",
-        "examples",
-        "lime",
-        "test.png",
-    )
-    save_fig_to_path(extracted_dag, filename)
 
     filter_dag_for_nodes_with_ids(
         inspector_result, {7, 8, 9, 10, 11, 12, 13}, 14

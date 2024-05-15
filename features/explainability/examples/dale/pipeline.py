@@ -111,6 +111,6 @@ def model_grad(inp):
     return grads.numpy()
 
 
-dale = DALE(data=X_t_test, model=neural_net, model_jac=model_grad)
+dale = DALE(data=X_t_train, model=neural_net, model_jac=model_grad)
 dale.fit()
-explanations = dale.eval(x=X_t_train, s=0)
+explanations = dale.eval(x=X_t_test, s=0)
