@@ -210,6 +210,8 @@ def get_numpy_array_row_iterator(
     if nditer is True:
         numpy_iterator = np.nditer(nparray, ["refs_ok"])
     else:
+        if nparray.ndim == 0:
+            nparray = nparray.reshape(1)
         numpy_iterator = nparray.__iter__()
 
     return column_info, map(tuple, zip(numpy_iterator))

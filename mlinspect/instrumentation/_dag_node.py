@@ -47,7 +47,7 @@ class DagNodeDetails:
     """
 
     description: str | None = None
-    columns: List[str] | None = None
+    columns: List[str] | List[int] | None = None
 
 
 @dataclasses.dataclass

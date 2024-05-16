@@ -64,3 +64,47 @@ def test_numpy_random() -> None:
         expected_lineage_df.reset_index(drop=True),
         atol=1,
     )
+
+
+def test_numpy_array() -> None:
+    """
+    Tests whether the monkey patching of ('numpy', 'array') works
+    """
+    test_code = cleandoc(
+        """
+            import numpy as np
+            test = np.array([0, 1])
+        """
+    )
+
+    inspector_result = _pipeline_executor.singleton.run(
+        python_code=test_code,
+        track_code_references=True,
+        inspections=[RowLineage(2)],
+    )
+    extracted_node: DagNode = list(inspector_result.dag.nodes)[0]
+
+    expected_node = DagNode(
+        0,
+        BasicCodeLocation("<string-source>", 2),
+        OperatorContext(
+            OperatorType.DATA_SOURCE, FunctionInfo("numpy", "array")
+        ),
+        DagNodeDetails("array", ["array"]),
+        OptionalCodeInfo(CodeReference(2, 7, 2, 23), "np.array([0, 1])"),
+    )
+    compare(extracted_node, expected_node)
+
+    inspection_results_data_source = (
+        inspector_result.dag_node_to_inspection_results[extracted_node]
+    )
+    lineage_output = inspection_results_data_source[RowLineage(2)]
+    expected_lineage_df = DataFrame(
+        [[0, {LineageId(0, 0)}], [1, {LineageId(0, 1)}]],
+        columns=["array", "mlinspect_lineage"],
+    )
+    pandas.testing.assert_frame_equal(
+        lineage_output.reset_index(drop=True),
+        expected_lineage_df.reset_index(drop=True),
+        atol=1,
+    )

@@ -90,6 +90,14 @@ class DalePatching:
             )
 
             function_info = FunctionInfo("dale.DALE", "__init__")
+            _, test_data_node, _ = add_test_data_dag_node(
+                data,
+                function_info,
+                lineno,
+                optional_code_reference,
+                optional_source_code,
+                caller_filename,
+            )
 
             operator_context = OperatorContext(
                 OperatorType.CREATE_EXPLAINER, function_info
@@ -114,7 +122,7 @@ class DalePatching:
                     optional_code_reference, optional_source_code
                 ),
             )
-            parent_nodes = []
+            parent_nodes = [test_data_node]
             if call_info_singleton_dale.parent_nodes:
                 parent_nodes.extend(call_info_singleton_dale.parent_nodes)
             add_dag_node(dag_node, parent_nodes, backend_result)

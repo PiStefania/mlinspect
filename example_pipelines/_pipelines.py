@@ -54,3 +54,17 @@ HEALTHCARE_PNG = os.path.join(
     "healthcare",
     "healthcare.png",
 )
+EXPLAINABILITY_LIME_PY = os.path.join(
+    str(get_project_root()),
+    "features",
+    "explainability",
+    "pipelines",
+    "adult_simple_with_explainability.py",
+)
+EXPLAINABILITY_HEALTHCARE_PY = os.path.join(
+    str(get_project_root()),
+    "features",
+    "explainability",
+    "examples",
+    "test_pipeline.py",
+)

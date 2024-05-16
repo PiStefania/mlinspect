@@ -41,7 +41,7 @@ def test_label_binarize() -> None:
 
                 pd_series = pd.Series(['yes', 'no', 'no', 'yes'], name='A')
                 binarized = label_binarize(pd_series, classes=['no', 'yes'])
-                expected = np.array([[1], [0], [0], [1]])
+                expected = [[1], [0], [0], [1]]
                 assert np.array_equal(binarized, expected)
                 """
     )
@@ -223,7 +223,7 @@ def test_standard_scaler() -> None:
                 encoded_data = standard_scaler.fit_transform(df)
                 test_df = pd.DataFrame({'A': [1, 2, 10, 5]})
                 encoded_data = standard_scaler.transform(test_df)
-                expected = np.array([[-1.], [-0.71428571], [1.57142857], [0.14285714]])
+                expected = [[-1.], [-0.71428571], [1.57142857], [0.14285714]]
                 assert np.allclose(encoded_data, expected)
                 """
     )
@@ -341,7 +341,7 @@ def test_function_transformer() -> None:
                 encoded_data = function_transformer.fit_transform(df)
                 test_df = pd.DataFrame({'A': [1, 2, 10, 5]})
                 encoded_data = function_transformer.transform(test_df)
-                expected = np.array([[0.000000], [0.693147], [2.302585], [1.609438]])
+                expected = [[0.000000], [0.693147], [2.302585], [1.609438]]
                 assert np.allclose(encoded_data, expected)
                 """
     )
@@ -470,7 +470,7 @@ def test_kbins_discretizer() -> None:
                 encoded_data = discretizer.fit_transform(df)
                 test_df = pd.DataFrame({'A': [1, 2, 10, 5]})
                 encoded_data = discretizer.transform(test_df)
-                expected = np.array([[0.], [0.], [2.], [1.]])
+                expected = [[0.], [0.], [2.], [1.]]
                 assert np.allclose(encoded_data, expected)
                 """
     )
@@ -596,7 +596,7 @@ def test_simple_imputer() -> None:
                 imputed_data = imputer.fit_transform(df)
                 test_df = pd.DataFrame({'A': ['cat_a', np.nan, 'cat_a', 'cat_c']})
                 imputed_data = imputer.transform(test_df)
-                expected = np.array([['cat_a'], ['cat_a'], ['cat_a'], ['cat_c']])
+                expected = [['cat_a'], ['cat_a'], ['cat_a'], ['cat_c']]
                 assert np.array_equal(imputed_data, expected)
                 """
     )
@@ -717,7 +717,7 @@ def test_one_hot_encoder_not_sparse() -> None:
                 df = pd.DataFrame({'A': ['cat_a', 'cat_b', 'cat_a', 'cat_c']})
                 one_hot_encoder = OneHotEncoder(sparse=False)
                 encoded_data = one_hot_encoder.fit_transform(df)
-                expected = np.array([[1., 0., 0.], [0., 1., 0.], [1., 0., 0.], [0., 0., 1.]])
+                expected = [[1., 0., 0.], [0., 1., 0.], [1., 0., 0.], [0., 0., 1.]]
                 print(encoded_data)
                 assert np.allclose(encoded_data, expected)
                 test_df = pd.DataFrame({'A': ['cat_a', 'cat_b', 'cat_a', 'cat_c']})
@@ -1041,7 +1041,7 @@ def test_column_transformer_one_transformer() -> None:
                     ('numeric', StandardScaler(), ['A', 'B'])
                 ])
                 encoded_data = column_transformer.fit_transform(df)
-                expected = numpy.array([[-1.], [-0.71428571], [1.57142857], [0.14285714]])
+                expected = [[-1.], [-0.71428571], [1.57142857], [0.14285714]]
                 assert numpy.allclose(encoded_data, expected)
                 """
     )
@@ -1377,8 +1377,8 @@ def test_column_transformer_multiple_transformers_all_dense() -> None:
                     ('categorical', OneHotEncoder(sparse=False), ['B'])
                 ])
                 encoded_data = column_transformer.fit_transform(df)
-                expected = numpy.array([[-1., 1., 0., 0.], [-0.71428571, 0., 1., 0.], [ 1.57142857, 1., 0., 0.],
-                    [0.14285714, 0., 0., 1.]])
+                expected = [[-1., 1., 0., 0.], [-0.71428571, 0., 1., 0.], [ 1.57142857, 1., 0., 0.],
+                    [0.14285714, 0., 0., 1.]]
                 print(encoded_data)
                 assert numpy.allclose(encoded_data, expected)
                 """
@@ -1601,8 +1601,8 @@ def test_column_transformer_multiple_transformers_sparse_dense() -> None:
                     ('categorical', OneHotEncoder(sparse=True), ['B'])
                 ])
                 encoded_data = column_transformer.fit_transform(df)
-                expected = numpy.array([[-1., 1., 0., 0.], [-0.71428571, 0., 1., 0.], [ 1.57142857, 1., 0., 0.],
-                    [0.14285714, 0., 0., 1.]])
+                expected = [[-1., 1., 0., 0.], [-0.71428571, 0., 1., 0.], [ 1.57142857, 1., 0., 0.],
+                    [0.14285714, 0., 0., 1.]]
                 print(encoded_data)
                 assert numpy.allclose(encoded_data, expected)
                 """
@@ -1827,8 +1827,8 @@ def test_column_transformer_transform_after_fit_transform() -> None:
                 encoded_data = column_transformer.fit_transform(df)
                 test_df = pd.DataFrame({'A': [1, 2, 10, 5], 'B': ['cat_a', 'cat_b', 'cat_a', 'cat_c']})
                 encoded_data = column_transformer.transform(test_df)
-                expected = numpy.array([[-1., 1., 0., 0.], [-0.71428571, 0., 1., 0.], [ 1.57142857, 1., 0., 0.],
-                    [0.14285714, 0., 0., 1.]])
+                expected = [[-1., 1., 0., 0.], [-0.71428571, 0., 1., 0.], [ 1.57142857, 1., 0., 0.],
+                    [0.14285714, 0., 0., 1.]]
                 print(encoded_data)
                 assert numpy.allclose(encoded_data, expected)
                 """
@@ -2054,7 +2054,7 @@ def test_decision_tree() -> None:
                 clf = clf.fit(train, target)
 
                 test_predict = clf.predict([[0., 0.], [0.6, 0.6]])
-                expected = np.array([0., 1.])
+                expected = [0., 1.]
                 assert np.allclose(test_predict, expected)
                 """
     )
@@ -2422,7 +2422,7 @@ def test_sgd_classifier() -> None:
                 clf = clf.fit(train, target)
 
                 test_predict = clf.predict([[0., 0.], [0.6, 0.6]])
-                expected = np.array([0., 1.])
+                expected = [0., 1.]
                 assert np.allclose(test_predict, expected)
                 """
     )
@@ -2596,7 +2596,7 @@ def test_grid_search_cv_sgd_classifier() -> None:
                 clf = clf.fit(train, target)
 
                 test_predict = clf.predict([[0., 0.], [0.6, 0.6]])
-                expected = np.array([0., 1.])
+                expected = [0., 1.]
                 assert np.allclose(test_predict, expected)
                 """
     )
@@ -2960,7 +2960,7 @@ def test_logistic_regression() -> None:
                 clf = clf.fit(train, target)
 
                 test_predict = clf.predict([[0., 0.], [0.6, 0.6]])
-                expected = np.array([0., 1.])
+                expected = [0., 1.]
                 assert np.allclose(test_predict, expected)
                 """
     )
