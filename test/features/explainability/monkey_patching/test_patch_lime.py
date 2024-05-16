@@ -86,6 +86,47 @@ def test_lime_tabular_explainer() -> None:
             "verbose=0, input_dim=2, loss='categorical_crossentropy')",
         ),
     )
+    expected_explainer_creation = DagNode(
+        8,
+        BasicCodeLocation("<string-source>", 29),
+        OperatorContext(
+            OperatorType.CREATE_EXPLAINER,
+            FunctionInfo("lime.lime_tabular.LimeTabularExplainer", "__init__"),
+        ),
+        DagNodeDetails("Neural Network", []),
+        OptionalCodeInfo(
+            CodeReference(29, 12, 34, 1),
+            'lime.lime_tabular.LimeTabularExplainer(\n    train,\n    mode="classification",\n    feature_names=["A", "B"],\n    class_names=["target"],\n)',
+        ),
+    )
+    expected_test_data_explainer_creation = DagNode(
+        9,
+        BasicCodeLocation("<string-source>", 29),
+        OperatorContext(
+            OperatorType.TEST_DATA,
+            FunctionInfo("lime.lime_tabular.LimeTabularExplainer", "__init__"),
+        ),
+        DagNodeDetails(None, ["array"]),
+        OptionalCodeInfo(
+            CodeReference(29, 12, 34, 1),
+            'lime.lime_tabular.LimeTabularExplainer(\n    train,\n    mode="classification",\n    feature_names=["A", "B"],\n    class_names=["target"],\n)',
+        ),
+    )
+    expected_test_data_explainability = DagNode(
+        10,
+        BasicCodeLocation("<string-source>", 35),
+        OperatorContext(
+            OperatorType.TEST_DATA,
+            FunctionInfo(
+                "lime.lime_tabular.LimeTabularExplainer", "explain_instance"
+            ),
+        ),
+        DagNodeDetails(None, ["array"]),
+        OptionalCodeInfo(
+            CodeReference(35, 9, 35, 64),
+            "explainer.explain_instance(train[0], clf.predict_proba)",
+        ),
+    )
     expected_test_data_predict = DagNode(
         11,
         BasicCodeLocation("<string-source>", 35),
@@ -110,47 +151,6 @@ def test_lime_tabular_explainer() -> None:
         OptionalCodeInfo(
             CodeReference(35, 9, 35, 64),
             "explainer.explain_instance(train[0], clf.predict_proba)",
-        ),
-    )
-    expected_test_data_explainability = DagNode(
-        10,
-        BasicCodeLocation("<string-source>", 35),
-        OperatorContext(
-            OperatorType.TEST_DATA,
-            FunctionInfo(
-                "lime.lime_tabular.LimeTabularExplainer", "explain_instance"
-            ),
-        ),
-        DagNodeDetails(None, ["array"]),
-        OptionalCodeInfo(
-            CodeReference(35, 9, 35, 64),
-            "explainer.explain_instance(train[0], clf.predict_proba)",
-        ),
-    )
-    expected_test_data_explainer_creation = DagNode(
-        9,
-        BasicCodeLocation("<string-source>", 29),
-        OperatorContext(
-            OperatorType.TEST_DATA,
-            FunctionInfo("lime.lime_tabular.LimeTabularExplainer", "__init__"),
-        ),
-        DagNodeDetails(None, ["array"]),
-        OptionalCodeInfo(
-            CodeReference(29, 12, 34, 1),
-            'lime.lime_tabular.LimeTabularExplainer(\n    train,\n    mode="classification",\n    feature_names=["A", "B"],\n    class_names=["target"],\n)',
-        ),
-    )
-    expected_explainer_creation = DagNode(
-        8,
-        BasicCodeLocation("<string-source>", 29),
-        OperatorContext(
-            OperatorType.CREATE_EXPLAINER,
-            FunctionInfo("lime.lime_tabular.LimeTabularExplainer", "__init__"),
-        ),
-        DagNodeDetails("Neural Network", []),
-        OptionalCodeInfo(
-            CodeReference(29, 12, 34, 1),
-            'lime.lime_tabular.LimeTabularExplainer(\n    train,\n    mode="classification",\n    feature_names=["A", "B"],\n    class_names=["target"],\n)',
         ),
     )
     expected_explainability = DagNode(
