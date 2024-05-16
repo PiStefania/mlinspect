@@ -41,7 +41,7 @@ call_info_singleton_alibi = AlibiCallInfo()
 
 
 class AlibiPatching:
-    """Patches for pandas"""
+    """Patches for alibi"""
 
     # pylint: disable=too-few-public-methods
 
