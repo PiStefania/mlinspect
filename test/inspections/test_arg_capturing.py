@@ -587,7 +587,7 @@ def test_arg_capturing_one_hot_encoder() -> None:
         inspections=[ArgumentCapturing()],
     )
     fit_transform_node = list(inspector_result.dag.nodes)[1]
-    transform_node = list(inspector_result.dag.nodes)[3]
+    transform_node = list(inspector_result.dag.nodes)[4]
 
     expected_fit_transform = DagNode(
         1,
@@ -602,7 +602,7 @@ def test_arg_capturing_one_hot_encoder() -> None:
         ),
     )
     expected_transform = DagNode(
-        3,
+        4,
         BasicCodeLocation("<string-source>", 6),
         OperatorContext(
             OperatorType.TRANSFORMER,
