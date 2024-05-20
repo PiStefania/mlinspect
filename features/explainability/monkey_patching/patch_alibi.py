@@ -128,7 +128,7 @@ class AlibiPatching:
                 call_info_singleton_alibi.mlinspect_explainer_node_id,
                 BasicCodeLocation(caller_filename, lineno),
                 operator_context,
-                DagNodeDetails("Neural Network", []),
+                DagNodeDetails("Alibi Explainer", []),
                 get_optional_code_info_or_none(
                     optional_code_reference, optional_source_code
                 ),
@@ -330,7 +330,7 @@ class AlibiPatching:
                 call_info_singleton_alibi.mlinspect_explainer_node_id,
                 BasicCodeLocation(caller_filename, lineno),
                 operator_context,
-                DagNodeDetails("Neural Network", []),
+                DagNodeDetails("Alibi Explainer", []),
                 get_optional_code_info_or_none(
                     optional_code_reference, optional_source_code
                 ),

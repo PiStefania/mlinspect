@@ -93,7 +93,7 @@ def test_lime_tabular_explainer() -> None:
             OperatorType.CREATE_EXPLAINER,
             FunctionInfo("lime.lime_tabular.LimeTabularExplainer", "__init__"),
         ),
-        DagNodeDetails("Neural Network", []),
+        DagNodeDetails("LIME Explainer", []),
         OptionalCodeInfo(
             CodeReference(29, 12, 34, 1),
             'lime.lime_tabular.LimeTabularExplainer(\n    train,\n    mode="classification",\n    feature_names=["A", "B"],\n    class_names=["target"],\n)',

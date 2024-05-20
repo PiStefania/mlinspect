@@ -152,7 +152,7 @@ class LimePatching:
                 call_info_singleton_lime.mlinspect_explainer_node_id,
                 BasicCodeLocation(caller_filename, lineno),
                 operator_context,
-                DagNodeDetails("Neural Network", []),
+                DagNodeDetails("LIME Explainer", []),
                 get_optional_code_info_or_none(
                     optional_code_reference, optional_source_code
                 ),

@@ -117,7 +117,7 @@ class ShapPatching:
                 call_info_singleton_shap.mlinspect_explainer_node_id,
                 BasicCodeLocation(caller_filename, lineno),
                 operator_context,
-                DagNodeDetails("Neural Network", []),
+                DagNodeDetails("SHAP Explainer", []),
                 get_optional_code_info_or_none(
                     optional_code_reference, optional_source_code
                 ),

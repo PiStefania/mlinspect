@@ -91,7 +91,7 @@ def test_alibi_integrated_gradients_explainer() -> None:
             OperatorType.CREATE_EXPLAINER,
             FunctionInfo("alibi.explainers.IntegratedGradients", "__init__"),
         ),
-        DagNodeDetails("Neural Network", []),
+        DagNodeDetails("Alibi Explainer", []),
         OptionalCodeInfo(
             CodeReference(29, 5, 34, 1),
             'IntegratedGradients(\n    model=clf.model_,\n    method="gausslegendre",\n    n_steps=50,\n    internal_batch_size=100,\n)',
@@ -206,7 +206,7 @@ def test_alibi_ale_explainer() -> None:
             OperatorType.CREATE_EXPLAINER,
             FunctionInfo("alibi.explainers.ALE", "__init__"),
         ),
-        DagNodeDetails("Neural Network", []),
+        DagNodeDetails("Alibi Explainer", []),
         OptionalCodeInfo(
             CodeReference(29, 16, 33, 1),
             'ALE(\n    clf.predict_proba,\n    feature_names=["A", "B"],\n    target_names=["target"],\n)',

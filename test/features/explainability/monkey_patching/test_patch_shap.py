@@ -125,7 +125,7 @@ def test_kernel_explainer() -> None:
             OperatorType.CREATE_EXPLAINER,
             FunctionInfo("shap.KernelExplainer", "__init__"),
         ),
-        DagNodeDetails("Neural Network", []),
+        DagNodeDetails("SHAP Explainer", []),
         OptionalCodeInfo(
             CodeReference(29, 12, 29, 52),
             "shap.KernelExplainer(clf.predict, train)",

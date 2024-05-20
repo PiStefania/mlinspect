@@ -16,6 +16,7 @@ from mlinspect.backends._backend_utils import (
 )
 from mlinspect.inspections._inspection_input import (
     ColumnInfo,
+    EstimatorInfo,
     InspectionInputDataSource,
     InspectionInputNAryOperator,
     InspectionInputSinkOperator,
@@ -408,7 +409,9 @@ def iter_input_annotation_output_sink_op(
             inputs_columns,
             row_iterator,
             non_data_function_args,
-            return_value,
+            EstimatorInfo(
+                estimator=return_value, train_data=data, train_labels=target
+            ),
         )
         inspection_iterators.append(inspection_iterator)
 

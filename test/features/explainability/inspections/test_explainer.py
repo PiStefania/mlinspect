@@ -83,7 +83,6 @@ def get_explainability_method_args() -> Dict[str, Any]:
     ]
     data = data[data["county"].isin(COUNTIES_OF_INTEREST)]
     train_data, test_data = train_test_split(data)
-    y_train = train_data["label"]
     y_test = test_data["label"]
     X_test = test_data.drop("label", axis=1)
 
@@ -105,9 +104,6 @@ def get_explainability_method_args() -> Dict[str, Any]:
         remainder="drop",
     )
 
-    X_t_train: MlinspectNdarray = featurisation.fit_transform(
-        train_data, y_train
-    )
     X_t_test: MlinspectNdarray = featurisation.fit_transform(X_test, y_test)
     return {
         "methods": [
@@ -120,11 +116,9 @@ def get_explainability_method_args() -> Dict[str, Any]:
             ExplainabilityMethodsEnum.DALE,
             ExplainabilityMethodsEnum.DALEX,
         ],
-        "explainer_input": X_t_train.view(np.ndarray),
-        "test_input": X_t_test.view(np.ndarray),
-        "features": featurisation.get_feature_names_out(),
-        "test_labels": y_test,
-        "train_labels": y_train,
+        "test_data": X_t_test.view(np.ndarray),
+        "feature_names": featurisation.get_feature_names_out(),
+        "test_labels": ["label"],
     }
 
 

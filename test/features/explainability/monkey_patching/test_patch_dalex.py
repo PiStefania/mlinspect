@@ -93,7 +93,7 @@ def test_dalex_explainer() -> None:
             OperatorType.CREATE_EXPLAINER,
             FunctionInfo("dalex.Explainer", "__init__"),
         ),
-        DagNodeDetails("Neural Network", []),
+        DagNodeDetails("DALEX Explainer", []),
         OptionalCodeInfo(
             CodeReference(29, 18, 31, 1),
             "dalex.Explainer(\n    clf, data=train, y=labels, predict_function=KerasClassifier.predict\n)",
@@ -132,7 +132,7 @@ def test_dalex_explainer() -> None:
             OperatorType.EXPLAINABILITY,
             FunctionInfo("dalex.Explainer", "model_parts"),
         ),
-        DagNodeDetails("DALEX", columns=[]),
+        DagNodeDetails("variable_importance", columns=[]),
         OptionalCodeInfo(
             CodeReference(32, 14, 32, 43),
             "dalex_explainer.model_parts()",
@@ -171,7 +171,7 @@ def test_dalex_explainer() -> None:
             OperatorType.EXPLAINABILITY,
             FunctionInfo("dalex.Explainer", "predict_parts"),
         ),
-        DagNodeDetails("DALEX", []),
+        DagNodeDetails("break_down_interactions", []),
         OptionalCodeInfo(
             CodeReference(35, 19, 35, 71),
             "dalex_explainer.predict_parts(df, label=df.index[0])",

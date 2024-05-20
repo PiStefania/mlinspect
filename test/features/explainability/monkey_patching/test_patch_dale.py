@@ -95,7 +95,7 @@ def test_dale_explainer() -> None:
             OperatorType.CREATE_EXPLAINER,
             FunctionInfo("dale.DALE", "__init__"),
         ),
-        DagNodeDetails("Neural Network", []),
+        DagNodeDetails("DALE Explainer", []),
         OptionalCodeInfo(
             CodeReference(37, 7, 37, 56),
             "DALE(data=train, model=clf, model_jac=model_grad)",
