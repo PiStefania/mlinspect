@@ -57,7 +57,7 @@ explainer = lime.lime_tabular.LimeTabularExplainer(
     transformed_data,
     mode="classification",
     feature_names=income_pipeline[0].get_feature_names_out(),
-    class_names=["label"],
+    class_names=["False", "True"],
 )
 result = explainer.explain_instance(
     transformed_data[0], income_pipeline[1].predict_proba

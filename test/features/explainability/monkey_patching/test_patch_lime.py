@@ -54,7 +54,7 @@ def test_lime_tabular_explainer() -> None:
                     train,
                     mode="classification",
                     feature_names=["A", "B"],
-                    class_names=["target"],
+                    class_names=["no", "yes"],
                 )
                 result = explainer.explain_instance(train[0], clf.predict_proba)
         """
@@ -96,7 +96,7 @@ def test_lime_tabular_explainer() -> None:
         DagNodeDetails("LIME Explainer", []),
         OptionalCodeInfo(
             CodeReference(29, 12, 34, 1),
-            'lime.lime_tabular.LimeTabularExplainer(\n    train,\n    mode="classification",\n    feature_names=["A", "B"],\n    class_names=["target"],\n)',
+            'lime.lime_tabular.LimeTabularExplainer(\n    train,\n    mode="classification",\n    feature_names=["A", "B"],\n    class_names=["no", "yes"],\n)',
         ),
     )
     expected_test_data_explainer_creation = DagNode(
@@ -109,7 +109,7 @@ def test_lime_tabular_explainer() -> None:
         DagNodeDetails(None, ["array"]),
         OptionalCodeInfo(
             CodeReference(29, 12, 34, 1),
-            'lime.lime_tabular.LimeTabularExplainer(\n    train,\n    mode="classification",\n    feature_names=["A", "B"],\n    class_names=["target"],\n)',
+            'lime.lime_tabular.LimeTabularExplainer(\n    train,\n    mode="classification",\n    feature_names=["A", "B"],\n    class_names=["no", "yes"],\n)',
         ),
     )
     expected_test_data_explainability = DagNode(

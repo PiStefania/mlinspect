@@ -169,7 +169,7 @@ def test_alibi_ale_explainer() -> None:
                 ale_explainer = ALE(
                     clf.predict_proba,
                     feature_names=["A", "B"],
-                    target_names=["target"],
+                    target_names=["no", "yes"],
                 )
                 explanation = ale_explainer.explain(train)
         """
@@ -209,7 +209,7 @@ def test_alibi_ale_explainer() -> None:
         DagNodeDetails("Alibi Explainer", []),
         OptionalCodeInfo(
             CodeReference(29, 16, 33, 1),
-            'ALE(\n    clf.predict_proba,\n    feature_names=["A", "B"],\n    target_names=["target"],\n)',
+            'ALE(\n    clf.predict_proba,\n    feature_names=["A", "B"],\n    target_names=["no", "yes"],\n)',
         ),
     )
     expected_test_data_explainability = DagNode(

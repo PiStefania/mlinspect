@@ -103,7 +103,7 @@ explainer = lime.lime_tabular.LimeTabularExplainer(
     X_t_train,
     mode="classification",
     feature_names=featurisation.get_feature_names_out(),
-    class_names=["label"],
+    class_names=["False", "True"],
 )
 result = explainer.explain_instance(X_t_test[0], neural_net.predict_proba)
 result.show_in_notebook()

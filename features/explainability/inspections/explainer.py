@@ -2,7 +2,7 @@
 Explainer Inspection
 """
 
-from typing import Any, Dict, Iterable, List, Union
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -30,8 +30,8 @@ class Explainer(Inspection):
         self,
         methods: List[ExplainabilityMethodsEnum],
         test_data: Any,
-        feature_names: List[str],
-        test_labels: List[str],
+        feature_names: Optional[List[str]],
+        test_labels: Optional[List[str]],
     ) -> None:
         # Inspection generic attributes
         self._operator_type: OperatorType | None = None
@@ -74,7 +74,8 @@ class Explainer(Inspection):
                             train_labels = estimator_info.train_labels
                         else:
                             print(
-                                f"Estimator {type(inspection_input.output.estimator)} is not supported for explainer inspection."
+                                f"Estimator {type(inspection_input.output.estimator)} is not supported for explainer "
+                                f"inspection."
                             )
             if not model:
                 yield None
