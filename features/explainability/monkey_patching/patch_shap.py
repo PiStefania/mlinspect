@@ -2,6 +2,7 @@ from typing import Any, List
 
 import gorilla
 import numpy as np
+import pandas
 import shap
 from shap.utils._legacy import IdentityLink
 
@@ -66,6 +67,7 @@ class ShapPatching:
         original = gorilla.get_original_attribute(
             shap.KernelExplainer, "__init__"
         )
+        print("INITTTTT")
 
         self.mlinspect_caller_filename = mlinspect_caller_filename
         self.mlinspect_lineno = mlinspect_lineno
@@ -73,6 +75,8 @@ class ShapPatching:
             mlinspect_optional_code_reference
         )
         self.mlinspect_optional_source_code = mlinspect_optional_source_code
+        if isinstance(data, pandas.DataFrame):
+            data = data.to_numpy()
         self.mlinspect_non_data_func_args = {
             "model": model,
             "data": data.view(np.ndarray),

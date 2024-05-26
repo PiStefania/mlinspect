@@ -10,7 +10,11 @@ import pandas as pd
 from features.explainability.inspections.explainability_methods_enum import (
     ExplainabilityMethodsEnum,
 )
-from features.explainability.inspections.utils import is_supported_estimator
+from features.explainability.inspections.utils import (
+    is_neural_network,
+    is_regression,
+    is_supported_estimator,
+)
 
 from mlinspect import OperatorType
 from mlinspect.inspections import (
@@ -138,6 +142,7 @@ class Explainer(Inspection):
                 if (
                     ExplainabilityMethodsEnum.INTEGRATED_GRADIENTS
                     in self.methods
+                    and is_neural_network(model)
                 ):
                     from alibi.explainers import IntegratedGradients
 
@@ -166,7 +171,10 @@ class Explainer(Inspection):
                         "explainer": explainer,
                         "results": explanation,
                     }
-                if ExplainabilityMethodsEnum.DALE in self.methods:
+                if (
+                    ExplainabilityMethodsEnum.DALE in self.methods
+                    and is_neural_network(model)
+                ):
                     import tensorflow as tf
 
                     from ..dale.dale import DALE
@@ -189,6 +197,9 @@ class Explainer(Inspection):
                         "results": explanations,
                     }
                 if ExplainabilityMethodsEnum.DALEX in self.methods:
+                    model_type = "classification"
+                    if is_regression(model):
+                        model_type = "regression"
                     import dalex as dx
 
                     explainer = dx.Explainer(
@@ -196,6 +207,7 @@ class Explainer(Inspection):
                         train_data,
                         train_labels,
                         predict_function=model.predict,
+                        model_type=model_type,
                     )
                     explanation = explainer.model_parts()
                     train_explanation = explanation.result

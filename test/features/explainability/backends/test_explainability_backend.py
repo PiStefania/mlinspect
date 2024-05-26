@@ -1,4 +1,4 @@
-from example_pipelines._pipelines import EXPLAINABILITY_LIME_PY
+from features.explainability.pipelines import EXPLAINABILITY_LIME_PY
 
 from mlinspect.testing._testing_helper_utils import (
     run_multiple_test_analyzers,
