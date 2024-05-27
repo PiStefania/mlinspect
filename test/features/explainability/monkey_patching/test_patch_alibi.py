@@ -19,7 +19,7 @@ from mlinspect import (
 )
 
 
-def test_alibi_integrated_gradients_explainer() -> None:
+def test_alibi_integrated_gradients_explainer_keras_classifier() -> None:
     test_code = cleandoc(
         """
                 import pandas as pd
@@ -135,7 +135,7 @@ def test_alibi_integrated_gradients_explainer() -> None:
     )
 
 
-def test_alibi_ale_explainer() -> None:
+def test_alibi_ale_explainer_keras_classifier() -> None:
     test_code = cleandoc(
         """
                 import pandas as pd
@@ -235,6 +235,306 @@ def test_alibi_ale_explainer() -> None:
         DagNodeDetails("ALE", []),
         OptionalCodeInfo(
             CodeReference(34, 14, 34, 42),
+            "ale_explainer.explain(train)",
+        ),
+    )
+    expected_dag.add_edge(expected_classifier, expected_explainer_creation)
+    expected_dag.add_edge(
+        expected_test_data_explainability, expected_explainability
+    )
+    expected_dag.add_edge(expected_explainer_creation, expected_explainability)
+
+    compare(
+        networkx.to_dict_of_dicts(inspector_result.dag),
+        networkx.to_dict_of_dicts(expected_dag),
+    )
+
+
+def test_alibi_ale_explainer_sgd_classifier() -> None:
+    test_code = cleandoc(
+        """
+                import pandas as pd
+                from sklearn.preprocessing import StandardScaler, label_binarize
+                from sklearn.linear_model import SGDClassifier
+                import numpy as np
+                from alibi.explainers import ALE
+
+                df = pd.DataFrame({'A': [0, 1, 2, 3], 'B': [0, 1, 2, 3], 'target': ['no', 'no', 'yes', 'yes']})
+
+                train = StandardScaler().fit_transform(df[['A', 'B']])
+                target = label_binarize(df['target'], classes=['no', 'yes'])
+
+                clf = SGDClassifier(loss="log_loss", random_state=42)
+                clf = clf.fit(train, target)
+
+                ale_explainer = ALE(
+                    clf.predict_proba,
+                    feature_names=["A", "B"],
+                    target_names=["no", "yes"],
+                )
+                explanation = ale_explainer.explain(train)
+        """
+    )
+
+    inspector_result = (
+        PipelineInspector.on_pipeline_from_string(test_code)
+        .set_code_reference_tracking(True)
+        .add_custom_monkey_patching_module(patch_alibi)
+        .execute()
+    )
+
+    filter_dag_for_nodes_with_ids(inspector_result, {7, 8, 9, 10}, 11)
+
+    expected_dag = networkx.DiGraph()
+    expected_classifier = DagNode(
+        7,
+        BasicCodeLocation("<string-source>", 12),
+        OperatorContext(
+            OperatorType.ESTIMATOR,
+            FunctionInfo(
+                "sklearn.linear_model._stochastic_gradient", "SGDClassifier"
+            ),
+        ),
+        DagNodeDetails("SGD Classifier", []),
+        OptionalCodeInfo(
+            CodeReference(12, 6, 12, 53),
+            'SGDClassifier(loss="log_loss", random_state=42)',
+        ),
+    )
+    expected_explainer_creation = DagNode(
+        8,
+        BasicCodeLocation("<string-source>", 15),
+        OperatorContext(
+            OperatorType.CREATE_EXPLAINER,
+            FunctionInfo("alibi.explainers.ALE", "__init__"),
+        ),
+        DagNodeDetails("Alibi Explainer", []),
+        OptionalCodeInfo(
+            CodeReference(15, 16, 19, 1),
+            'ALE(\n    clf.predict_proba,\n    feature_names=["A", "B"],\n    target_names=["no", "yes"],\n)',
+        ),
+    )
+    expected_test_data_explainability = DagNode(
+        9,
+        BasicCodeLocation("<string-source>", 20),
+        OperatorContext(
+            OperatorType.TEST_DATA,
+            FunctionInfo("alibi.explainers.ALE", "explain"),
+        ),
+        DagNodeDetails(None, columns=["array"]),
+        OptionalCodeInfo(
+            CodeReference(20, 14, 20, 42),
+            "ale_explainer.explain(train)",
+        ),
+    )
+    expected_explainability = DagNode(
+        10,
+        BasicCodeLocation("<string-source>", 20),
+        OperatorContext(
+            OperatorType.EXPLAINABILITY,
+            FunctionInfo("alibi.explainers.ALE", "explain"),
+        ),
+        DagNodeDetails("ALE", []),
+        OptionalCodeInfo(
+            CodeReference(20, 14, 20, 42),
+            "ale_explainer.explain(train)",
+        ),
+    )
+    expected_dag.add_edge(expected_classifier, expected_explainer_creation)
+    expected_dag.add_edge(
+        expected_test_data_explainability, expected_explainability
+    )
+    expected_dag.add_edge(expected_explainer_creation, expected_explainability)
+
+    compare(
+        networkx.to_dict_of_dicts(inspector_result.dag),
+        networkx.to_dict_of_dicts(expected_dag),
+    )
+
+
+def test_alibi_ale_explainer_decision_tree_classifier() -> None:
+    test_code = cleandoc(
+        """
+                import pandas as pd
+                from sklearn.preprocessing import StandardScaler, label_binarize
+                from sklearn.tree import DecisionTreeClassifier
+                import numpy as np
+                from alibi.explainers import ALE
+
+                df = pd.DataFrame({'A': [0, 1, 2, 3], 'B': [0, 1, 2, 3], 'target': ['no', 'no', 'yes', 'yes']})
+
+                train = StandardScaler().fit_transform(df[['A', 'B']])
+                target = label_binarize(df['target'], classes=['no', 'yes'])
+
+                clf = DecisionTreeClassifier()
+                clf = clf.fit(train, target)
+
+                ale_explainer = ALE(
+                    clf.predict_proba,
+                    feature_names=["A", "B"],
+                    target_names=["no", "yes"],
+                )
+                explanation = ale_explainer.explain(train)
+        """
+    )
+
+    inspector_result = (
+        PipelineInspector.on_pipeline_from_string(test_code)
+        .set_code_reference_tracking(True)
+        .add_custom_monkey_patching_module(patch_alibi)
+        .execute()
+    )
+
+    filter_dag_for_nodes_with_ids(inspector_result, {7, 8, 9, 10}, 11)
+
+    expected_dag = networkx.DiGraph()
+    expected_classifier = DagNode(
+        7,
+        BasicCodeLocation("<string-source>", 12),
+        OperatorContext(
+            OperatorType.ESTIMATOR,
+            FunctionInfo("sklearn.tree._classes", "DecisionTreeClassifier"),
+        ),
+        DagNodeDetails("Decision Tree", []),
+        OptionalCodeInfo(
+            CodeReference(12, 6, 12, 30), "DecisionTreeClassifier()"
+        ),
+    )
+    expected_explainer_creation = DagNode(
+        8,
+        BasicCodeLocation("<string-source>", 15),
+        OperatorContext(
+            OperatorType.CREATE_EXPLAINER,
+            FunctionInfo("alibi.explainers.ALE", "__init__"),
+        ),
+        DagNodeDetails("Alibi Explainer", []),
+        OptionalCodeInfo(
+            CodeReference(15, 16, 19, 1),
+            'ALE(\n    clf.predict_proba,\n    feature_names=["A", "B"],\n    target_names=["no", "yes"],\n)',
+        ),
+    )
+    expected_test_data_explainability = DagNode(
+        9,
+        BasicCodeLocation("<string-source>", 20),
+        OperatorContext(
+            OperatorType.TEST_DATA,
+            FunctionInfo("alibi.explainers.ALE", "explain"),
+        ),
+        DagNodeDetails(None, columns=["array"]),
+        OptionalCodeInfo(
+            CodeReference(20, 14, 20, 42),
+            "ale_explainer.explain(train)",
+        ),
+    )
+    expected_explainability = DagNode(
+        10,
+        BasicCodeLocation("<string-source>", 20),
+        OperatorContext(
+            OperatorType.EXPLAINABILITY,
+            FunctionInfo("alibi.explainers.ALE", "explain"),
+        ),
+        DagNodeDetails("ALE", []),
+        OptionalCodeInfo(
+            CodeReference(20, 14, 20, 42),
+            "ale_explainer.explain(train)",
+        ),
+    )
+    expected_dag.add_edge(expected_classifier, expected_explainer_creation)
+    expected_dag.add_edge(
+        expected_test_data_explainability, expected_explainability
+    )
+    expected_dag.add_edge(expected_explainer_creation, expected_explainability)
+
+    compare(
+        networkx.to_dict_of_dicts(inspector_result.dag),
+        networkx.to_dict_of_dicts(expected_dag),
+    )
+
+
+def test_alibi_ale_explainer_logistic_regression() -> None:
+    test_code = cleandoc(
+        """
+                import pandas as pd
+                from sklearn.preprocessing import StandardScaler, label_binarize
+                from sklearn.linear_model import LogisticRegression
+                import numpy as np
+                from alibi.explainers import ALE
+
+                df = pd.DataFrame({'A': [0, 1, 2, 3], 'B': [0, 1, 2, 3], 'target': ['no', 'no', 'yes', 'yes']})
+
+                train = StandardScaler().fit_transform(df[['A', 'B']])
+                target = label_binarize(df['target'], classes=['no', 'yes'])
+
+                clf = LogisticRegression()
+                clf = clf.fit(train, target)
+
+                ale_explainer = ALE(
+                    clf.predict_proba,
+                    feature_names=["A", "B"],
+                    target_names=["no", "yes"],
+                )
+                explanation = ale_explainer.explain(train)
+        """
+    )
+
+    inspector_result = (
+        PipelineInspector.on_pipeline_from_string(test_code)
+        .set_code_reference_tracking(True)
+        .add_custom_monkey_patching_module(patch_alibi)
+        .execute()
+    )
+
+    filter_dag_for_nodes_with_ids(inspector_result, {7, 8, 9, 10}, 11)
+
+    expected_dag = networkx.DiGraph()
+    expected_classifier = DagNode(
+        7,
+        BasicCodeLocation("<string-source>", 12),
+        OperatorContext(
+            OperatorType.ESTIMATOR,
+            FunctionInfo(
+                "sklearn.linear_model._logistic", "LogisticRegression"
+            ),
+        ),
+        DagNodeDetails("Logistic Regression", []),
+        OptionalCodeInfo(CodeReference(12, 6, 12, 26), "LogisticRegression()"),
+    )
+    expected_explainer_creation = DagNode(
+        8,
+        BasicCodeLocation("<string-source>", 15),
+        OperatorContext(
+            OperatorType.CREATE_EXPLAINER,
+            FunctionInfo("alibi.explainers.ALE", "__init__"),
+        ),
+        DagNodeDetails("Alibi Explainer", []),
+        OptionalCodeInfo(
+            CodeReference(15, 16, 19, 1),
+            'ALE(\n    clf.predict_proba,\n    feature_names=["A", "B"],\n    target_names=["no", "yes"],\n)',
+        ),
+    )
+    expected_test_data_explainability = DagNode(
+        9,
+        BasicCodeLocation("<string-source>", 20),
+        OperatorContext(
+            OperatorType.TEST_DATA,
+            FunctionInfo("alibi.explainers.ALE", "explain"),
+        ),
+        DagNodeDetails(None, columns=["array"]),
+        OptionalCodeInfo(
+            CodeReference(20, 14, 20, 42),
+            "ale_explainer.explain(train)",
+        ),
+    )
+    expected_explainability = DagNode(
+        10,
+        BasicCodeLocation("<string-source>", 20),
+        OperatorContext(
+            OperatorType.EXPLAINABILITY,
+            FunctionInfo("alibi.explainers.ALE", "explain"),
+        ),
+        DagNodeDetails("ALE", []),
+        OptionalCodeInfo(
+            CodeReference(20, 14, 20, 42),
             "ale_explainer.explain(train)",
         ),
     )
