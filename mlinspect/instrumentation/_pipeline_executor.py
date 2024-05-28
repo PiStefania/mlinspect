@@ -11,10 +11,6 @@ import networkx
 from astmonkey.transformers import ParentChildNodeTransformer
 from nbconvert import PythonExporter
 
-from features.explainability import (
-    monkey_patching as explainability_monkey_patching,
-)
-
 from .. import monkeypatching
 from .._inspector_result import InspectorResult
 from ..checks._check import Check
@@ -299,6 +295,6 @@ def get_monkey_patching_patch_sources() -> list:
     """
     Get monkey patches provided by mlinspect and custom patches provided by the user
     """
-    patch_sources = [monkeypatching, explainability_monkey_patching]
+    patch_sources = [monkeypatching]
     patch_sources.extend(singleton.custom_monkey_patching)
     return patch_sources
