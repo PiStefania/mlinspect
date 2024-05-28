@@ -3,8 +3,6 @@ from inspect import cleandoc
 import networkx
 from testfixtures import compare
 
-from features.explainability.monkey_patching import patch_sklearn_inspection
-
 from ...test_utils.utils import filter_dag_for_nodes_with_ids
 from mlinspect import (
     BasicCodeLocation,
@@ -59,7 +57,6 @@ def test_sklearn_inspection_pdp_from_estimator_keras_classifier() -> None:
     inspector_result = (
         PipelineInspector.on_pipeline_from_string(test_code)
         .set_code_reference_tracking(True)
-        .add_custom_monkey_patching_module(patch_sklearn_inspection)
         .execute()
     )
 
@@ -157,7 +154,6 @@ def test_sklearn_inspection_ice_from_estimator_keras_classifier() -> None:
     inspector_result = (
         PipelineInspector.on_pipeline_from_string(test_code)
         .set_code_reference_tracking(True)
-        .add_custom_monkey_patching_module(patch_sklearn_inspection)
         .execute()
     )
 
@@ -241,7 +237,6 @@ def test_sklearn_inspection_pdp_from_estimator_sgd_classifier() -> None:
     inspector_result = (
         PipelineInspector.on_pipeline_from_string(test_code)
         .set_code_reference_tracking(True)
-        .add_custom_monkey_patching_module(patch_sklearn_inspection)
         .execute()
     )
 
@@ -326,7 +321,6 @@ def test_sklearn_inspection_ice_from_estimator_sgd_classifier() -> None:
     inspector_result = (
         PipelineInspector.on_pipeline_from_string(test_code)
         .set_code_reference_tracking(True)
-        .add_custom_monkey_patching_module(patch_sklearn_inspection)
         .execute()
     )
 
@@ -413,7 +407,6 @@ def test_sklearn_inspection_pdp_from_estimator_decision_tree_classifier() -> (
     inspector_result = (
         PipelineInspector.on_pipeline_from_string(test_code)
         .set_code_reference_tracking(True)
-        .add_custom_monkey_patching_module(patch_sklearn_inspection)
         .execute()
     )
 
@@ -497,7 +490,6 @@ def test_sklearn_inspection_ice_from_estimator_decision_tree_classifier() -> (
     inspector_result = (
         PipelineInspector.on_pipeline_from_string(test_code)
         .set_code_reference_tracking(True)
-        .add_custom_monkey_patching_module(patch_sklearn_inspection)
         .execute()
     )
 
@@ -579,7 +571,6 @@ def test_sklearn_inspection_pdp_from_estimator_logistic_regression() -> None:
     inspector_result = (
         PipelineInspector.on_pipeline_from_string(test_code)
         .set_code_reference_tracking(True)
-        .add_custom_monkey_patching_module(patch_sklearn_inspection)
         .execute()
     )
 
@@ -661,7 +652,6 @@ def test_sklearn_inspection_ice_from_estimator_logistic_regression() -> None:
     inspector_result = (
         PipelineInspector.on_pipeline_from_string(test_code)
         .set_code_reference_tracking(True)
-        .add_custom_monkey_patching_module(patch_sklearn_inspection)
         .execute()
     )
 
