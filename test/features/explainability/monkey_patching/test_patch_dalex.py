@@ -3,8 +3,6 @@ from inspect import cleandoc
 import networkx
 from testfixtures import compare
 
-from features.explainability.monkey_patching import patch_dalex
-
 from ...test_utils.utils import filter_dag_for_nodes_with_ids
 from mlinspect import (
     BasicCodeLocation,
@@ -63,7 +61,6 @@ def test_dalex_explainer_keras_classifier() -> None:
     inspector_result = (
         PipelineInspector.on_pipeline_from_string(test_code)
         .set_code_reference_tracking(True)
-        .add_custom_monkey_patching_module(patch_dalex)
         .execute()
     )
 
@@ -235,7 +232,6 @@ def test_dalex_explainer_sgd_classifier() -> None:
     inspector_result = (
         PipelineInspector.on_pipeline_from_string(test_code)
         .set_code_reference_tracking(True)
-        .add_custom_monkey_patching_module(patch_dalex)
         .execute()
     )
 
@@ -408,7 +404,6 @@ def test_dalex_explainer_decision_tree_classifier() -> None:
     inspector_result = (
         PipelineInspector.on_pipeline_from_string(test_code)
         .set_code_reference_tracking(True)
-        .add_custom_monkey_patching_module(patch_dalex)
         .execute()
     )
 
@@ -578,7 +573,6 @@ def test_dalex_explainer_logistic_regression() -> None:
     inspector_result = (
         PipelineInspector.on_pipeline_from_string(test_code)
         .set_code_reference_tracking(True)
-        .add_custom_monkey_patching_module(patch_dalex)
         .execute()
     )
 
