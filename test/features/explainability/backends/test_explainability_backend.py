@@ -1,4 +1,4 @@
-from example_pipelines._pipelines import EXPLAINABILITY_LIME_PY
+from features.explainability.pipelines import EXPLAINABILITY_LIME_PY
 
 from mlinspect.testing._testing_helper_utils import (
     run_multiple_test_analyzers,
@@ -16,7 +16,7 @@ def test_explainability_backend_random_annotation_propagation() -> None:
         random_annotation_analyzer_result = (
             run_random_annotation_testing_analyzer(code)
         )
-        assert len(random_annotation_analyzer_result) == 17
+        assert len(random_annotation_analyzer_result) == 25
 
 
 def test_explainability_backend_row_index_annotation_propagation() -> None:
@@ -26,7 +26,7 @@ def test_explainability_backend_row_index_annotation_propagation() -> None:
     with open(EXPLAINABILITY_LIME_PY, encoding="utf-8") as file:
         code = file.read()
         lineage_result = run_row_index_annotation_testing_analyzer(code)
-        assert len(lineage_result) == 17
+        assert len(lineage_result) == 25
 
 
 def test_explainability_backend_annotation_propagation_multiple_analyzers() -> (

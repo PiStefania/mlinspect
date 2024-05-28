@@ -102,6 +102,6 @@ from alibi.explainers import ALE
 ale_explainer = ALE(
     neural_net.predict_proba,
     feature_names=featurisation.get_feature_names_out(),
-    target_names=["label"],
+    target_names=["False", "True"],
 )
 explanation = ale_explainer.explain(X_t_train)

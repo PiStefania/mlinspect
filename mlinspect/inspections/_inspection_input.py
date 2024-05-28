@@ -153,6 +153,17 @@ class InspectionRowSinkOperator:
 
 
 @dataclasses.dataclass(frozen=True)
+class EstimatorInfo:
+    """
+    Wrapper class for operators like Estimators that only get fitted
+    """
+
+    estimator: Any
+    train_data: Any
+    train_labels: Any
+
+
+@dataclasses.dataclass(frozen=True)
 class InspectionInputSinkOperator:
     """
     Additional context for the inspection. Contains, most importantly, the operator type.
@@ -162,4 +173,4 @@ class InspectionInputSinkOperator:
     inputs_columns: List[ColumnInfo]
     row_iterator: Iterable[InspectionRowSinkOperator]
     non_data_function_args: Dict[str, Any]
-    self_output: Any
+    output: EstimatorInfo

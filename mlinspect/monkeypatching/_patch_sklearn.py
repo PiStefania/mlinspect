@@ -24,6 +24,12 @@ from sklearn.feature_extraction import text
 from sklearn.linear_model._stochastic_gradient import DEFAULT_EPSILON
 from sklearn.metrics import accuracy_score
 
+from features.explainability.inspections.utils import (
+    is_lime_source_code,
+    is_shap_source_code,
+    should_ignore_patch_predict,
+    should_ignore_patch_predict_proba,
+)
 from features.explainability.monkey_patching.patch_alibi import (
     call_info_singleton_alibi,
 )
@@ -1791,6 +1797,14 @@ class SklearnDecisionTreePatching:
                 [train_data_node, train_labels_node],
                 estimator_backend_result,
             )
+            if call_info_singleton_sklearn_inspection:
+                call_info_singleton_sklearn_inspection.parent_nodes = [
+                    dag_node
+                ]
+            if call_info_singleton_alibi:
+                call_info_singleton_alibi.parent_nodes_ale = [dag_node]
+            if call_info_singleton_dalex:
+                call_info_singleton_dalex.parent_nodes = [dag_node]
         else:
             original(self, *args, **kwargs)
         return self
@@ -1884,6 +1898,204 @@ class SklearnDecisionTreePatching:
         else:
             original = gorilla.get_original_attribute(
                 tree.DecisionTreeClassifier, "score"
+            )
+            new_result = original(self, *args, **kwargs)
+        return new_result
+
+    @gorilla.name("predict")
+    @gorilla.settings(allow_hit=True)
+    def patched_predict(self, *args: Any, **kwargs: Any) -> Any:
+        """Patch for ('sklearn.tree._classes.DecisionTreeClassifier', 'predict')"""
+        # pylint: disable=no-method-argument
+        original = gorilla.get_original_attribute(
+            tree.DecisionTreeClassifier, "predict"
+        )
+
+        def execute_inspections(
+            _: Any,
+            caller_filename: str,
+            lineno: int,
+            optional_code_reference: CodeReference,
+            optional_source_code: str,
+        ) -> Any:
+            """Execute inspections, add DAG node"""
+            # pylint: disable=too-many-locals
+            function_info = FunctionInfo(
+                "sklearn.tree._classes.DecisionTreeClassifier", "predict"
+            )
+            # Test data
+            if should_ignore_patch_predict(optional_source_code):
+                if "fit" in optional_source_code:
+                    if len(args) > 1:
+                        return original(self, X=args[1], **kwargs)
+                    else:
+                        return original(self, X=args[0], **kwargs)
+                return original(self, *args, **kwargs)
+            if is_shap_source_code(optional_source_code):
+                # Add test data dag node with the actual explainer input
+                data_backend_result, test_data_node, test_data_result = (
+                    add_test_data_dag_node(
+                        call_info_singleton_shap.actual_explainer_input,
+                        function_info,
+                        lineno,
+                        optional_code_reference,
+                        optional_source_code,
+                        caller_filename,
+                    )
+                )
+            else:
+                data_backend_result, test_data_node, test_data_result = (
+                    add_test_data_dag_node(
+                        args[0],
+                        function_info,
+                        lineno,
+                        optional_code_reference,
+                        optional_source_code,
+                        caller_filename,
+                    )
+                )
+
+            operator_context = OperatorContext(
+                OperatorType.PREDICT, function_info
+            )
+            input_dfs = [data_backend_result.annotated_dfobject]
+            input_infos = SklearnBackend().before_call(
+                operator_context, input_dfs
+            )
+
+            result = original(self, test_data_result, *args[2:], **kwargs)
+            estimator_backend_result = SklearnBackend().after_call(
+                operator_context,
+                input_infos,
+                result,
+                self.mlinspect_non_data_func_args,
+            )
+            dag_node = DagNode(
+                singleton.get_next_op_id(),
+                BasicCodeLocation(caller_filename, lineno),
+                operator_context,
+                DagNodeDetails("Decision Tree", []),
+                get_optional_code_info_or_none(
+                    optional_code_reference, optional_source_code
+                ),
+            )
+            estimator_dag_node = get_dag_node_for_id(
+                self.mlinspect_estimator_node_id
+            )
+            add_dag_node(
+                dag_node,
+                [estimator_dag_node, test_data_node],
+                estimator_backend_result,
+            )
+            if call_info_singleton_shap.mlinspect_explainer_node_id:
+                call_info_singleton_shap.parent_nodes = [
+                    dag_node,
+                    test_data_node,
+                ]
+            return result
+
+        if not call_info_singleton.param_search_active:
+            new_result = execute_patched_func_indirect_allowed(
+                execute_inspections
+            )
+        else:
+            original = gorilla.get_original_attribute(
+                tree.DecisionTreeClassifier, "predict"
+            )
+            new_result = original(self, *args, **kwargs)
+        return new_result
+
+    @gorilla.name("predict_proba")
+    @gorilla.settings(allow_hit=True)
+    def patched_predict_proba(self, *args: Any, **kwargs: Any) -> Any:
+        """Patch for ('sklearn.tree._classes.DecisionTreeClassifier', 'predict_proba')"""
+        # pylint: disable=no-method-argument
+        original = gorilla.get_original_attribute(
+            tree.DecisionTreeClassifier, "predict_proba"
+        )
+
+        def execute_inspections(
+            _: Any,
+            caller_filename: str,
+            lineno: int,
+            optional_code_reference: CodeReference,
+            optional_source_code: str,
+        ) -> Any:
+            """Execute inspections, add DAG node"""
+            # pylint: disable=too-many-locals
+            function_info = FunctionInfo(
+                "sklearn.tree._classes.DecisionTreeClassifier", "predict_proba"
+            )
+            # Test data
+            if should_ignore_patch_predict_proba(optional_source_code):
+                return original(self, *args, **kwargs)
+            if is_lime_source_code(optional_source_code):
+                # Add test data dag node with the actual explainer input
+                data_backend_result, test_data_node, _ = (
+                    add_test_data_dag_node(
+                        call_info_singleton_lime.actual_explainer_input,
+                        function_info,
+                        lineno,
+                        optional_code_reference,
+                        optional_source_code,
+                        caller_filename,
+                    )
+                )
+            else:
+                data_backend_result, test_data_node, _ = (
+                    add_test_data_dag_node(
+                        args[0],
+                        function_info,
+                        lineno,
+                        optional_code_reference,
+                        optional_source_code,
+                        caller_filename,
+                    )
+                )
+
+            operator_context = OperatorContext(
+                OperatorType.PREDICT, function_info
+            )
+            input_dfs = [data_backend_result.annotated_dfobject]
+            input_infos = SklearnBackend().before_call(
+                operator_context, input_dfs
+            )
+
+            result = original(self, *args, **kwargs)
+            estimator_backend_result = SklearnBackend().after_call(
+                operator_context,
+                input_infos,
+                result,
+                self.mlinspect_non_data_func_args,
+            )
+            dag_node = DagNode(
+                singleton.get_next_op_id(),
+                BasicCodeLocation(caller_filename, lineno),
+                operator_context,
+                DagNodeDetails("Decision Tree", []),
+                get_optional_code_info_or_none(
+                    optional_code_reference, optional_source_code
+                ),
+            )
+            estimator_dag_node = get_dag_node_for_id(
+                self.mlinspect_estimator_node_id
+            )
+            add_dag_node(
+                dag_node,
+                [estimator_dag_node, test_data_node],
+                estimator_backend_result,
+            )
+            if call_info_singleton_lime.mlinspect_explainer_node_id:
+                call_info_singleton_lime.parent_nodes = [dag_node]
+            return result
+
+        if not call_info_singleton.param_search_active:
+            new_result = execute_patched_func_indirect_allowed(
+                execute_inspections
+            )
+        else:
+            original = gorilla.get_original_attribute(
+                tree.DecisionTreeClassifier, "predict_proba"
             )
             new_result = original(self, *args, **kwargs)
         return new_result
@@ -2052,6 +2264,14 @@ class SklearnSGDClassifierPatching:
                 [train_data_node, train_labels_node],
                 estimator_backend_result,
             )
+            if call_info_singleton_sklearn_inspection:
+                call_info_singleton_sklearn_inspection.parent_nodes = [
+                    dag_node
+                ]
+            if call_info_singleton_alibi:
+                call_info_singleton_alibi.parent_nodes_ale = [dag_node]
+            if call_info_singleton_dalex:
+                call_info_singleton_dalex.parent_nodes = [dag_node]
         else:
             original(self, *args, **kwargs)
         return self
@@ -2150,6 +2370,206 @@ class SklearnSGDClassifierPatching:
         else:
             original = gorilla.get_original_attribute(
                 linear_model.SGDClassifier, "score"
+            )
+            new_result = original(self, *args, **kwargs)
+        return new_result
+
+    @gorilla.name("predict")
+    @gorilla.settings(allow_hit=True)
+    def patched_predict(self, *args: Any, **kwargs: Any) -> Any:
+        """Patch for ('sklearn.linear_model._stochastic_gradient.SGDClassifier', 'predict')"""
+        # pylint: disable=no-method-argument
+        original = gorilla.get_original_attribute(
+            linear_model.SGDClassifier, "predict"
+        )
+
+        def execute_inspections(
+            _: Any,
+            caller_filename: str,
+            lineno: int,
+            optional_code_reference: CodeReference,
+            optional_source_code: str,
+        ) -> Any:
+            """Execute inspections, add DAG node"""
+            # pylint: disable=too-many-locals
+            function_info = FunctionInfo(
+                "sklearn.linear_model._stochastic_gradient.SGDClassifier",
+                "predict",
+            )
+            # Test data
+            if should_ignore_patch_predict(optional_source_code):
+                if "fit" in optional_source_code:
+                    if len(args) > 1:
+                        return original(self, X=args[1], **kwargs)
+                    else:
+                        return original(self, X=args[0], **kwargs)
+                return original(self, *args, **kwargs)
+            if is_shap_source_code(optional_source_code):
+                # Add test data dag node with the actual explainer input
+                data_backend_result, test_data_node, test_data_result = (
+                    add_test_data_dag_node(
+                        call_info_singleton_shap.actual_explainer_input,
+                        function_info,
+                        lineno,
+                        optional_code_reference,
+                        optional_source_code,
+                        caller_filename,
+                    )
+                )
+            else:
+                data_backend_result, test_data_node, test_data_result = (
+                    add_test_data_dag_node(
+                        args[0],
+                        function_info,
+                        lineno,
+                        optional_code_reference,
+                        optional_source_code,
+                        caller_filename,
+                    )
+                )
+
+            operator_context = OperatorContext(
+                OperatorType.PREDICT, function_info
+            )
+            input_dfs = [data_backend_result.annotated_dfobject]
+            input_infos = SklearnBackend().before_call(
+                operator_context, input_dfs
+            )
+
+            result = original(self, test_data_result, *args[2:], **kwargs)
+            estimator_backend_result = SklearnBackend().after_call(
+                operator_context,
+                input_infos,
+                result,
+                self.mlinspect_non_data_func_args,
+            )
+            dag_node = DagNode(
+                singleton.get_next_op_id(),
+                BasicCodeLocation(caller_filename, lineno),
+                operator_context,
+                DagNodeDetails("SGD Classifier", []),
+                get_optional_code_info_or_none(
+                    optional_code_reference, optional_source_code
+                ),
+            )
+            estimator_dag_node = get_dag_node_for_id(
+                self.mlinspect_estimator_node_id
+            )
+            add_dag_node(
+                dag_node,
+                [estimator_dag_node, test_data_node],
+                estimator_backend_result,
+            )
+            if call_info_singleton_shap.mlinspect_explainer_node_id:
+                call_info_singleton_shap.parent_nodes = [
+                    dag_node,
+                    test_data_node,
+                ]
+            return result
+
+        if not call_info_singleton.param_search_active:
+            new_result = execute_patched_func_indirect_allowed(
+                execute_inspections
+            )
+        else:
+            original = gorilla.get_original_attribute(
+                linear_model.SGDClassifier, "predict"
+            )
+            new_result = original(self, *args, **kwargs)
+        return new_result
+
+    @gorilla.name("predict_proba")
+    @gorilla.settings(allow_hit=True)
+    def patched_predict_proba(self, *args: Any, **kwargs: Any) -> Any:
+        """Patch for ('sklearn.linear_model._stochastic_gradient.SGDClassifier', 'predict_proba')"""
+        # pylint: disable=no-method-argument
+        original = gorilla.get_original_attribute(
+            linear_model.SGDClassifier, "predict_proba"
+        )
+
+        def execute_inspections(
+            _: Any,
+            caller_filename: str,
+            lineno: int,
+            optional_code_reference: CodeReference,
+            optional_source_code: str,
+        ) -> Any:
+            """Execute inspections, add DAG node"""
+            # pylint: disable=too-many-locals
+            function_info = FunctionInfo(
+                "sklearn.linear_model._stochastic_gradient.SGDClassifier",
+                "predict_proba",
+            )
+            # Test data
+            if should_ignore_patch_predict_proba(optional_source_code):
+                return original(self, *args, **kwargs)
+            if is_lime_source_code(optional_source_code):
+                # Add test data dag node with the actual explainer input
+                data_backend_result, test_data_node, _ = (
+                    add_test_data_dag_node(
+                        call_info_singleton_lime.actual_explainer_input,
+                        function_info,
+                        lineno,
+                        optional_code_reference,
+                        optional_source_code,
+                        caller_filename,
+                    )
+                )
+            else:
+                data_backend_result, test_data_node, _ = (
+                    add_test_data_dag_node(
+                        args[0],
+                        function_info,
+                        lineno,
+                        optional_code_reference,
+                        optional_source_code,
+                        caller_filename,
+                    )
+                )
+
+            operator_context = OperatorContext(
+                OperatorType.PREDICT, function_info
+            )
+            input_dfs = [data_backend_result.annotated_dfobject]
+            input_infos = SklearnBackend().before_call(
+                operator_context, input_dfs
+            )
+
+            result = original(self, *args, **kwargs)
+            estimator_backend_result = SklearnBackend().after_call(
+                operator_context,
+                input_infos,
+                result,
+                self.mlinspect_non_data_func_args,
+            )
+            dag_node = DagNode(
+                singleton.get_next_op_id(),
+                BasicCodeLocation(caller_filename, lineno),
+                operator_context,
+                DagNodeDetails("SGD Classifier", []),
+                get_optional_code_info_or_none(
+                    optional_code_reference, optional_source_code
+                ),
+            )
+            estimator_dag_node = get_dag_node_for_id(
+                self.mlinspect_estimator_node_id
+            )
+            add_dag_node(
+                dag_node,
+                [estimator_dag_node, test_data_node],
+                estimator_backend_result,
+            )
+            if call_info_singleton_lime.mlinspect_explainer_node_id:
+                call_info_singleton_lime.parent_nodes = [dag_node]
+            return result
+
+        if not call_info_singleton.param_search_active:
+            new_result = execute_patched_func_indirect_allowed(
+                execute_inspections
+            )
+        else:
+            original = gorilla.get_original_attribute(
+                linear_model.SGDClassifier, "predict_proba"
             )
             new_result = original(self, *args, **kwargs)
         return new_result
@@ -2306,6 +2726,14 @@ class SklearnLogisticRegressionPatching:
                 [train_data_node, train_labels_node],
                 estimator_backend_result,
             )
+            if call_info_singleton_sklearn_inspection:
+                call_info_singleton_sklearn_inspection.parent_nodes = [
+                    dag_node
+                ]
+            if call_info_singleton_alibi:
+                call_info_singleton_alibi.parent_nodes_ale = [dag_node]
+            if call_info_singleton_dalex:
+                call_info_singleton_dalex.parent_nodes = [dag_node]
         else:
             original(self, *args, **kwargs)
         return self
@@ -2403,6 +2831,205 @@ class SklearnLogisticRegressionPatching:
         else:
             original = gorilla.get_original_attribute(
                 linear_model.LogisticRegression, "score"
+            )
+            new_result = original(self, *args, **kwargs)
+        return new_result
+
+    @gorilla.name("predict")
+    @gorilla.settings(allow_hit=True)
+    def patched_predict(self, *args: Any, **kwargs: Any) -> Any:
+        """Patch for ('sklearn.linear_model._logistic.LogisticRegression', 'predict')"""
+        # pylint: disable=no-method-argument
+        original = gorilla.get_original_attribute(
+            linear_model.LogisticRegression, "predict"
+        )
+
+        def execute_inspections(
+            _: Any,
+            caller_filename: str,
+            lineno: int,
+            optional_code_reference: CodeReference,
+            optional_source_code: str,
+        ) -> Any:
+            """Execute inspections, add DAG node"""
+            # pylint: disable=too-many-locals
+            function_info = FunctionInfo(
+                "sklearn.linear_model._logistic.LogisticRegression", "predict"
+            )
+            # Test data
+            if should_ignore_patch_predict(optional_source_code):
+                if "fit" in optional_source_code:
+                    if len(args) > 1:
+                        return original(self, X=args[1], **kwargs)
+                    else:
+                        return original(self, X=args[0], **kwargs)
+                return original(self, *args, **kwargs)
+            if is_shap_source_code(optional_source_code):
+                # Add test data dag node with the actual explainer input
+                data_backend_result, test_data_node, test_data_result = (
+                    add_test_data_dag_node(
+                        call_info_singleton_shap.actual_explainer_input,
+                        function_info,
+                        lineno,
+                        optional_code_reference,
+                        optional_source_code,
+                        caller_filename,
+                    )
+                )
+            else:
+                data_backend_result, test_data_node, test_data_result = (
+                    add_test_data_dag_node(
+                        args[0],
+                        function_info,
+                        lineno,
+                        optional_code_reference,
+                        optional_source_code,
+                        caller_filename,
+                    )
+                )
+
+            operator_context = OperatorContext(
+                OperatorType.PREDICT, function_info
+            )
+            input_dfs = [data_backend_result.annotated_dfobject]
+            input_infos = SklearnBackend().before_call(
+                operator_context, input_dfs
+            )
+
+            result = original(self, test_data_result, *args[2:], **kwargs)
+            estimator_backend_result = SklearnBackend().after_call(
+                operator_context,
+                input_infos,
+                result,
+                self.mlinspect_non_data_func_args,
+            )
+            dag_node = DagNode(
+                singleton.get_next_op_id(),
+                BasicCodeLocation(caller_filename, lineno),
+                operator_context,
+                DagNodeDetails("Logistic Regression", []),
+                get_optional_code_info_or_none(
+                    optional_code_reference, optional_source_code
+                ),
+            )
+            estimator_dag_node = get_dag_node_for_id(
+                self.mlinspect_estimator_node_id
+            )
+            add_dag_node(
+                dag_node,
+                [estimator_dag_node, test_data_node],
+                estimator_backend_result,
+            )
+            if call_info_singleton_shap.mlinspect_explainer_node_id:
+                call_info_singleton_shap.parent_nodes = [
+                    dag_node,
+                    test_data_node,
+                ]
+            return result
+
+        if not call_info_singleton.param_search_active:
+            new_result = execute_patched_func_indirect_allowed(
+                execute_inspections
+            )
+        else:
+            original = gorilla.get_original_attribute(
+                linear_model.LogisticRegression, "predict"
+            )
+            new_result = original(self, *args, **kwargs)
+        return new_result
+
+    @gorilla.name("predict_proba")
+    @gorilla.settings(allow_hit=True)
+    def patched_predict_proba(self, *args: Any, **kwargs: Any) -> Any:
+        """Patch for ('sklearn.linear_model._logistic.LogisticRegression', 'predict_proba')"""
+        # pylint: disable=no-method-argument
+        original = gorilla.get_original_attribute(
+            linear_model.LogisticRegression, "predict_proba"
+        )
+
+        def execute_inspections(
+            _: Any,
+            caller_filename: str,
+            lineno: int,
+            optional_code_reference: CodeReference,
+            optional_source_code: str,
+        ) -> Any:
+            """Execute inspections, add DAG node"""
+            # pylint: disable=too-many-locals
+            function_info = FunctionInfo(
+                "sklearn.linear_model._logistic.LogisticRegression",
+                "predict_proba",
+            )
+            # Test data
+            if should_ignore_patch_predict_proba(optional_source_code):
+                return original(self, *args, **kwargs)
+            if is_lime_source_code(optional_source_code):
+                # Add test data dag node with the actual explainer input
+                data_backend_result, test_data_node, _ = (
+                    add_test_data_dag_node(
+                        call_info_singleton_lime.actual_explainer_input,
+                        function_info,
+                        lineno,
+                        optional_code_reference,
+                        optional_source_code,
+                        caller_filename,
+                    )
+                )
+            else:
+                data_backend_result, test_data_node, _ = (
+                    add_test_data_dag_node(
+                        args[0],
+                        function_info,
+                        lineno,
+                        optional_code_reference,
+                        optional_source_code,
+                        caller_filename,
+                    )
+                )
+
+            operator_context = OperatorContext(
+                OperatorType.PREDICT, function_info
+            )
+            input_dfs = [data_backend_result.annotated_dfobject]
+            input_infos = SklearnBackend().before_call(
+                operator_context, input_dfs
+            )
+
+            result = original(self, *args, **kwargs)
+            estimator_backend_result = SklearnBackend().after_call(
+                operator_context,
+                input_infos,
+                result,
+                self.mlinspect_non_data_func_args,
+            )
+            dag_node = DagNode(
+                singleton.get_next_op_id(),
+                BasicCodeLocation(caller_filename, lineno),
+                operator_context,
+                DagNodeDetails("Logistic Regression", []),
+                get_optional_code_info_or_none(
+                    optional_code_reference, optional_source_code
+                ),
+            )
+            estimator_dag_node = get_dag_node_for_id(
+                self.mlinspect_estimator_node_id
+            )
+            add_dag_node(
+                dag_node,
+                [estimator_dag_node, test_data_node],
+                estimator_backend_result,
+            )
+            if call_info_singleton_lime.mlinspect_explainer_node_id:
+                call_info_singleton_lime.parent_nodes = [dag_node]
+            return result
+
+        if not call_info_singleton.param_search_active:
+            new_result = execute_patched_func_indirect_allowed(
+                execute_inspections
+            )
+        else:
+            original = gorilla.get_original_attribute(
+                linear_model.LogisticRegression, "predict_proba"
             )
             new_result = original(self, *args, **kwargs)
         return new_result
@@ -2674,24 +3301,15 @@ class SklearnKerasClassifierPatching:
                 "scikeras.wrappers.KerasClassifier", "predict"
             )
             # Test data
-            # TODO: make it more easily readable
-            if "fit" in optional_source_code:
-                if len(args) > 1:
-                    return original(self, X=args[1], **kwargs)
-                else:
-                    return original(self, X=args[0], **kwargs)
-            if (
-                "score" in optional_source_code
-                or "shap_values" in optional_source_code
-                or (
-                    "predict" in optional_source_code
-                    and "Explainer" not in optional_source_code
-                )
-                or "PartialDependenceDisplay" in optional_source_code
-                or "dalex" in optional_source_code
-            ):
+            if should_ignore_patch_predict(optional_source_code):
+                if "fit" in optional_source_code:
+                    if len(args) > 1:
+                        return original(self, X=args[1], **kwargs)
+                    else:
+                        return original(self, X=args[0], **kwargs)
                 return original(self, *args, **kwargs)
-            if "Explainer" in optional_source_code:
+            if is_shap_source_code(optional_source_code):
+                # Add test data dag node with the actual explainer input
                 data_backend_result, test_data_node, test_data_result = (
                     add_test_data_dag_node(
                         call_info_singleton_shap.actual_explainer_input,
@@ -2789,16 +3407,10 @@ class SklearnKerasClassifierPatching:
                 "scikeras.wrappers.KerasClassifier", "predict_proba"
             )
             # Test data
-            if (
-                "score" in optional_source_code
-                or "lime" in optional_source_code
-                or "fit" in optional_source_code
-                or "PartialDependenceDisplay" in optional_source_code
-                or "ale" in optional_source_code
-                or "dalex" in optional_source_code
-            ):
+            if should_ignore_patch_predict_proba(optional_source_code):
                 return original(self, *args, **kwargs)
-            if "explain_instance" in optional_source_code:
+            if is_lime_source_code(optional_source_code):
+                # Add test data dag node with the actual explainer input
                 data_backend_result, test_data_node, _ = (
                     add_test_data_dag_node(
                         call_info_singleton_lime.actual_explainer_input,

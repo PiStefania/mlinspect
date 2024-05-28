@@ -2,6 +2,7 @@ from typing import Any, List
 
 import gorilla
 import numpy as np
+import pandas
 import shap
 from shap.utils._legacy import IdentityLink
 
@@ -66,6 +67,7 @@ class ShapPatching:
         original = gorilla.get_original_attribute(
             shap.KernelExplainer, "__init__"
         )
+        print("INITTTTT")
 
         self.mlinspect_caller_filename = mlinspect_caller_filename
         self.mlinspect_lineno = mlinspect_lineno
@@ -73,6 +75,8 @@ class ShapPatching:
             mlinspect_optional_code_reference
         )
         self.mlinspect_optional_source_code = mlinspect_optional_source_code
+        if isinstance(data, pandas.DataFrame):
+            data = data.to_numpy()
         self.mlinspect_non_data_func_args = {
             "model": model,
             "data": data.view(np.ndarray),
@@ -105,7 +109,8 @@ class ShapPatching:
             input_infos = ExplainabilityBackend().before_call(
                 operator_context, []
             )
-            result = original(self, **self.mlinspect_non_data_func_args)
+            original(self, **self.mlinspect_non_data_func_args)
+            result = self
             backend_result = ExplainabilityBackend().after_call(
                 operator_context,
                 input_infos,
@@ -117,7 +122,7 @@ class ShapPatching:
                 call_info_singleton_shap.mlinspect_explainer_node_id,
                 BasicCodeLocation(caller_filename, lineno),
                 operator_context,
-                DagNodeDetails("Neural Network", []),
+                DagNodeDetails("SHAP Explainer", []),
                 get_optional_code_info_or_none(
                     optional_code_reference, optional_source_code
                 ),

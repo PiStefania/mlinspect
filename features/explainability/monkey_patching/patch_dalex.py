@@ -139,7 +139,8 @@ class DalexPatching:
             input_infos = ExplainabilityBackend().before_call(
                 operator_context, []
             )
-            result = original(self, **self.mlinspect_non_data_func_args)
+            original(self, **self.mlinspect_non_data_func_args)
+            result = self
             backend_result = ExplainabilityBackend().after_call(
                 operator_context,
                 input_infos,
@@ -151,7 +152,7 @@ class DalexPatching:
                 call_info_singleton_dalex.mlinspect_explainer_node_id,
                 BasicCodeLocation(caller_filename, lineno),
                 operator_context,
-                DagNodeDetails("Neural Network", []),
+                DagNodeDetails("DALEX Explainer", []),
                 get_optional_code_info_or_none(
                     optional_code_reference, optional_source_code
                 ),
@@ -180,12 +181,7 @@ class DalexPatching:
     def patched_model_parts(
         self,
         loss_function: str | None = None,
-        type: tuple = (  # pylint: disable=redefined-builtin
-            "variable_importance",
-            "ratio",
-            "difference",
-            "shap_wrapper",
-        ),
+        type: str = "variable_importance",  # pylint: disable=redefined-builtin
         N: int = 1000,
         B: int = 10,
         variables: np.ndarray | str | None = None,
@@ -242,7 +238,7 @@ class DalexPatching:
                 singleton.get_next_op_id(),
                 BasicCodeLocation(caller_filename, lineno),
                 operator_context,
-                DagNodeDetails("DALEX", []),
+                DagNodeDetails(args["type"], []),
                 get_optional_code_info_or_none(
                     optional_code_reference, optional_source_code
                 ),
@@ -273,12 +269,7 @@ class DalexPatching:
     def patched_predict_parts(
         self,
         new_observation: Any,
-        type: tuple = (  # pylint: disable=redefined-builtin
-            "break_down_interactions",
-            "break_down",
-            "shap",
-            "shap_wrapper",
-        ),
+        type: str = "break_down_interactions",  # pylint: disable=redefined-builtin
         order: List[int] | List[str] | None = None,
         interaction_preference: int = 1,
         path: str = "average",
@@ -346,7 +337,7 @@ class DalexPatching:
                 singleton.get_next_op_id(),
                 BasicCodeLocation(caller_filename, lineno),
                 operator_context,
-                DagNodeDetails("DALEX", []),
+                DagNodeDetails(args["type"], []),
                 get_optional_code_info_or_none(
                     optional_code_reference, optional_source_code
                 ),

@@ -116,7 +116,8 @@ class AlibiPatching:
             input_infos = ExplainabilityBackend().before_call(
                 operator_context, []
             )
-            result = original(self, **self.mlinspect_non_data_func_args)
+            original(self, **self.mlinspect_non_data_func_args)
+            result = self
             backend_result = ExplainabilityBackend().after_call(
                 operator_context,
                 input_infos,
@@ -128,7 +129,7 @@ class AlibiPatching:
                 call_info_singleton_alibi.mlinspect_explainer_node_id,
                 BasicCodeLocation(caller_filename, lineno),
                 operator_context,
-                DagNodeDetails("Neural Network", []),
+                DagNodeDetails("Alibi Explainer", []),
                 get_optional_code_info_or_none(
                     optional_code_reference, optional_source_code
                 ),
@@ -318,7 +319,8 @@ class AlibiPatching:
             input_infos = ExplainabilityBackend().before_call(
                 operator_context, []
             )
-            result = original(self, **self.mlinspect_non_data_func_args)
+            original(self, **self.mlinspect_non_data_func_args)
+            result = self
             backend_result = ExplainabilityBackend().after_call(
                 operator_context,
                 input_infos,
@@ -330,7 +332,7 @@ class AlibiPatching:
                 call_info_singleton_alibi.mlinspect_explainer_node_id,
                 BasicCodeLocation(caller_filename, lineno),
                 operator_context,
-                DagNodeDetails("Neural Network", []),
+                DagNodeDetails("Alibi Explainer", []),
                 get_optional_code_info_or_none(
                     optional_code_reference, optional_source_code
                 ),

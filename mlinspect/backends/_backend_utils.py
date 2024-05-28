@@ -5,9 +5,12 @@ Some utility functions the different instrumentation backends
 import itertools
 from typing import Any, List
 
+import dalex
 import lime
 import numpy as np
+import shap
 from alibi.api.interfaces import Explanation
+from alibi.explainers import ALE, IntegratedGradients
 from dalex.model_explanations import VariableImportance
 from dalex.predict_explanations import BreakDown
 from pandas import DataFrame, Series
@@ -16,6 +19,8 @@ from scipy.sparse import csr_matrix
 from sklearn.inspection import PartialDependenceDisplay
 from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.tree import DecisionTreeClassifier
+
+from features.explainability.dale.dale import DALE
 
 from ..inspections import Inspection
 from ..inspections._inspection_input import ColumnInfo
@@ -92,6 +97,24 @@ def get_iterator_for_type(
         iterator = get_list_row_iterator([data], columns)
     elif isinstance(data, SGDClassifier):
         iterator = get_list_row_iterator([data], columns)
+    elif isinstance(data, lime.lime_tabular.LimeTabularExplainer):
+        iterator = get_list_row_iterator([data], columns)
+    elif isinstance(data, lime.explanation.Explanation):
+        iterator = get_list_row_iterator([data], columns)
+    elif isinstance(data, IntegratedGradients):
+        iterator = get_list_row_iterator([data], columns)
+    elif isinstance(data, ALE):
+        iterator = get_list_row_iterator([data], columns)
+    elif isinstance(data, DALE):
+        iterator = get_list_row_iterator([data], columns)
+    elif isinstance(data, VariableImportance):
+        iterator = get_list_row_iterator([data], columns)
+    elif isinstance(data, BreakDown):
+        iterator = get_list_row_iterator([data], columns)
+    elif isinstance(data, Explanation):
+        iterator = get_list_row_iterator([data], columns)
+    elif isinstance(data, PartialDependenceDisplay):
+        iterator = get_list_row_iterator([data], columns)
     else:
         raise NotImplementedError("TODO: Support type {}!".format(type(data)))
     return iterator
@@ -152,6 +175,18 @@ def create_wrapper_with_annotations(
     elif isinstance(return_value, LogisticRegression):
         new_return_value = AnnotatedDfObject(return_value, annotations_df)
     elif isinstance(return_value, SGDClassifier):
+        new_return_value = AnnotatedDfObject(return_value, annotations_df)
+    elif isinstance(return_value, lime.lime_tabular.LimeTabularExplainer):
+        new_return_value = AnnotatedDfObject(return_value, annotations_df)
+    elif isinstance(return_value, IntegratedGradients):
+        new_return_value = AnnotatedDfObject(return_value, annotations_df)
+    elif isinstance(return_value, ALE):
+        new_return_value = AnnotatedDfObject(return_value, annotations_df)
+    elif isinstance(return_value, DALE):
+        new_return_value = AnnotatedDfObject(return_value, annotations_df)
+    elif isinstance(return_value, dalex.Explainer):
+        new_return_value = AnnotatedDfObject(return_value, annotations_df)
+    elif isinstance(return_value, shap.KernelExplainer):
         new_return_value = AnnotatedDfObject(return_value, annotations_df)
     else:
         raise NotImplementedError(

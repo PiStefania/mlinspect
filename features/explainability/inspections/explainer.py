@@ -2,14 +2,18 @@
 Explainer Inspection
 """
 
-from typing import Any, Dict, Iterable, List, Union
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 import numpy as np
 import pandas as pd
-from scikeras.wrappers import KerasClassifier
 
 from features.explainability.inspections.explainability_methods_enum import (
     ExplainabilityMethodsEnum,
+)
+from features.explainability.inspections.utils import (
+    is_neural_network,
+    is_regression,
+    is_supported_estimator,
 )
 
 from mlinspect import OperatorType
@@ -29,22 +33,18 @@ class Explainer(Inspection):
     def __init__(
         self,
         methods: List[ExplainabilityMethodsEnum],
-        explainer_input: Any,
-        test_input: Any,
-        features: List[str],
-        test_labels: List[str],
-        train_labels: List[str],
-        nsamples: int = 100,
+        test_data: Any,
+        feature_names: Optional[List[str]],
+        test_labels: Optional[List[str]],
     ) -> None:
-        self.methods = methods
+        # Inspection generic attributes
         self._operator_type: OperatorType | None = None
         self._results: Dict = {}
-        self.test_input = test_input
-        self.features = features
-        self.nsamples = nsamples
-        self.explainer_input = explainer_input
+        # Inspection specific attributes
+        self.methods = methods
+        self.test_data = test_data
+        self.features = feature_names
         self.test_labels = test_labels
-        self.train_labels = train_labels
 
     def visit_operator(
         self,
@@ -60,22 +60,36 @@ class Explainer(Inspection):
         """
         self._operator_type = inspection_input.operator_context.operator
         if self._operator_type == OperatorType.ESTIMATOR:
-            # TODO: add more classifiers
-            model: KerasClassifier | None = None
+            model: Any | None = None
+            train_data: Any | None = None
+            train_labels: Any | None = None
             for row in inspection_input.row_iterator:
                 if isinstance(row, InspectionRowSinkOperator):
-                    model = inspection_input.self_output
+                    if inspection_input.output is not None:
+                        if is_supported_estimator(
+                            inspection_input.output.estimator
+                        ):
+                            estimator_info = inspection_input.output
+                            print(
+                                "Estimator is supported for explainer inspection."
+                            )
+                            model = estimator_info.estimator
+                            train_data = estimator_info.train_data
+                            train_labels = estimator_info.train_labels
+                        else:
+                            print(
+                                f"Estimator {type(inspection_input.output.estimator)} is not supported for explainer "
+                                f"inspection."
+                            )
             if not model:
                 yield None
             if model:
                 if ExplainabilityMethodsEnum.SHAP in self.methods:
                     import shap
 
-                    explainer = shap.KernelExplainer(
-                        model.predict, self.explainer_input
-                    )
+                    explainer = shap.KernelExplainer(model.predict, train_data)
                     results = explainer.shap_values(
-                        self.test_input[:2], nsamples=self.nsamples
+                        self.test_data[:2],
                     )
                     self._results[ExplainabilityMethodsEnum.SHAP] = {
                         "explainer": explainer,
@@ -86,14 +100,14 @@ class Explainer(Inspection):
                     import lime.lime_tabular
 
                     explainer = lime.lime_tabular.LimeTabularExplainer(
-                        self.explainer_input,
+                        train_data,
                         mode="classification",
                         feature_names=self.features,
-                        class_names=["label"],
+                        class_names=self.test_labels,
                     )
 
                     result = explainer.explain_instance(
-                        self.test_input[0], model.predict_proba
+                        self.test_data[0], model.predict_proba
                     )
                     self._results[ExplainabilityMethodsEnum.LIME] = {
                         "explainer": explainer,
@@ -104,7 +118,7 @@ class Explainer(Inspection):
 
                     display = PartialDependenceDisplay.from_estimator(
                         model,
-                        self.explainer_input,
+                        train_data,
                         features=[1, 2],
                         kind="average",
                     )
@@ -117,7 +131,7 @@ class Explainer(Inspection):
 
                     display = PartialDependenceDisplay.from_estimator(
                         model,
-                        self.explainer_input,
+                        train_data,
                         features=[1, 2],
                         kind="individual",
                     )
@@ -128,6 +142,7 @@ class Explainer(Inspection):
                 if (
                     ExplainabilityMethodsEnum.INTEGRATED_GRADIENTS
                     in self.methods
+                    and is_neural_network(model)
                 ):
                     from alibi.explainers import IntegratedGradients
 
@@ -138,7 +153,7 @@ class Explainer(Inspection):
                         internal_batch_size=100,
                     )
                     explanation = ig.explain(
-                        self.test_input, baselines=None, target=0
+                        self.test_data, baselines=None, target=0
                     )
                     self._results[
                         ExplainabilityMethodsEnum.INTEGRATED_GRADIENTS
@@ -149,14 +164,17 @@ class Explainer(Inspection):
                     explainer = ALE(
                         model.predict_proba,
                         feature_names=self.features,
-                        target_names=["label"],
+                        target_names=self.test_labels,
                     )
-                    explanation = explainer.explain(self.explainer_input)
+                    explanation = explainer.explain(train_data)
                     self._results[ExplainabilityMethodsEnum.ALE] = {
                         "explainer": explainer,
                         "results": explanation,
                     }
-                if ExplainabilityMethodsEnum.DALE in self.methods:
+                if (
+                    ExplainabilityMethodsEnum.DALE in self.methods
+                    and is_neural_network(model)
+                ):
                     import tensorflow as tf
 
                     from ..dale.dale import DALE
@@ -170,28 +188,30 @@ class Explainer(Inspection):
                         return grads.numpy()
 
                     dale = DALE(
-                        data=self.test_input, model=model, model_jac=model_grad
+                        data=train_data, model=model, model_jac=model_grad
                     )
                     dale.fit()
-                    explanations = dale.eval(x=self.explainer_input, s=0)
+                    explanations = dale.eval(x=self.test_data, s=0)
                     self._results[ExplainabilityMethodsEnum.DALE] = {
                         "explainer": dale,
                         "results": explanations,
                     }
                 if ExplainabilityMethodsEnum.DALEX in self.methods:
+                    model_type = "classification"
+                    if is_regression(model):
+                        model_type = "regression"
                     import dalex as dx
 
                     explainer = dx.Explainer(
                         model,
-                        self.explainer_input,
-                        self.train_labels,
+                        train_data,
+                        train_labels,
                         predict_function=model.predict,
+                        model_type=model_type,
                     )
                     explanation = explainer.model_parts()
                     train_explanation = explanation.result
-                    df = pd.DataFrame(
-                        [self.test_input[0]], index=["first_row"]
-                    )
+                    df = pd.DataFrame([self.test_data[0]], index=["first_row"])
                     test_explanation = explainer.predict_parts(
                         df,
                         label=df.index[0],

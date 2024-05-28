@@ -7,9 +7,6 @@ from mlinspect.backends._backend import (
     Backend,
     BackendResult,
 )
-from mlinspect.backends._pandas_backend import (
-    execute_inspection_visits_data_source,
-)
 from mlinspect.backends._sklearn_backend import (
     execute_inspection_visits_nary_op,
 )
@@ -38,8 +35,11 @@ class ExplainabilityBackend(Backend):
                 non_data_function_args,
             )
         elif operator_context.operator == OperatorType.CREATE_EXPLAINER:
-            return_value_be = execute_inspection_visits_data_source(
-                operator_context, return_value, non_data_function_args
+            return_value_be = execute_inspection_visits_nary_op(
+                operator_context,
+                input_infos,
+                return_value,
+                non_data_function_args,
             )
         else:
             raise NotImplementedError(

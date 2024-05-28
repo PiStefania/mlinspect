@@ -105,7 +105,8 @@ class DalePatching:
             input_infos = ExplainabilityBackend().before_call(
                 operator_context, []
             )
-            result = original(self, **self.mlinspect_non_data_func_args)
+            original(self, **self.mlinspect_non_data_func_args)
+            result = self
             backend_result = ExplainabilityBackend().after_call(
                 operator_context,
                 input_infos,
@@ -117,7 +118,7 @@ class DalePatching:
                 call_info_singleton_dale.mlinspect_explainer_node_id,
                 BasicCodeLocation(caller_filename, lineno),
                 operator_context,
-                DagNodeDetails("Neural Network", []),
+                DagNodeDetails("DALE Explainer", []),
                 get_optional_code_info_or_none(
                     optional_code_reference, optional_source_code
                 ),
