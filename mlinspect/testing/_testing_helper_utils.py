@@ -11,6 +11,7 @@ from networkx import DiGraph
 from pandas import DataFrame
 
 from demo.feature_overview.missing_embeddings import MissingEmbeddings
+from features.explainability import monkey_patching
 
 from mlinspect import FunctionInfo, OperatorContext, OperatorType
 from mlinspect._pipeline_inspector import PipelineInspector
@@ -333,6 +334,7 @@ def run_random_annotation_testing_analyzer(code: str) -> dict:
     result = (
         PipelineInspector.on_pipeline_from_string(code)
         .add_required_inspection(RandomAnnotationTestingInspection(10))
+        .add_custom_monkey_patching_modules([monkey_patching])
         .execute()
     )
     inspection_results = result.dag_node_to_inspection_results
@@ -352,6 +354,7 @@ def run_row_index_annotation_testing_analyzer(code: str) -> dict:
     result = (
         PipelineInspector.on_pipeline_from_string(code)
         .add_required_inspection(RowLineage(10))
+        .add_custom_monkey_patching_modules([monkey_patching])
         .execute()
     )
     inspection_results = result.dag_node_to_inspection_results
@@ -377,6 +380,7 @@ def run_multiple_test_analyzers(code: str) -> tuple:
     result = (
         PipelineInspector.on_pipeline_from_string(code)
         .add_required_inspections(analyzers)
+        .add_custom_monkey_patching_modules([monkey_patching])
         .execute()
     )
     dag_node_to_inspection_results = result.dag_node_to_inspection_results

@@ -116,7 +116,8 @@ class AlibiPatching:
             input_infos = ExplainabilityBackend().before_call(
                 operator_context, []
             )
-            result = original(self, **self.mlinspect_non_data_func_args)
+            original(self, **self.mlinspect_non_data_func_args)
+            result = self
             backend_result = ExplainabilityBackend().after_call(
                 operator_context,
                 input_infos,
@@ -318,7 +319,8 @@ class AlibiPatching:
             input_infos = ExplainabilityBackend().before_call(
                 operator_context, []
             )
-            result = original(self, **self.mlinspect_non_data_func_args)
+            original(self, **self.mlinspect_non_data_func_args)
+            result = self
             backend_result = ExplainabilityBackend().after_call(
                 operator_context,
                 input_infos,

@@ -90,10 +90,13 @@ class RandomAnnotationTestingInspection(Inspection):
                         InspectionRowUnaryOperator,
                         InspectionRowNAryOperator,
                         InspectionRowSinkOperator,
+                        InspectionRowDataSource,
                     ),
                 )
                 if isinstance(row, InspectionRowUnaryOperator):
                     annotation = row.annotation
+                elif isinstance(row, InspectionRowDataSource):
+                    annotation = row.output
                 else:
                     annotation = row.annotation[0]
                 yield annotation

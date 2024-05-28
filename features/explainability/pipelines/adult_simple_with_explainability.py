@@ -4,6 +4,7 @@ An example pipeline
 
 import os
 
+import numpy as np
 import pandas as pd
 from sklearn import compose, pipeline, preprocessing, tree
 
@@ -59,6 +60,7 @@ explainer = lime.lime_tabular.LimeTabularExplainer(
     feature_names=income_pipeline[0].get_feature_names_out(),
     class_names=["False", "True"],
 )
+test_data = np.array(transformed_data[0])
 result = explainer.explain_instance(
     transformed_data[0], income_pipeline[1].predict_proba
 )
