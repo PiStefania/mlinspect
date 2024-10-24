@@ -191,7 +191,7 @@ class Explainer(Inspection):
                         data=train_data, model=model, model_jac=model_grad
                     )
                     dale.fit()
-                    explanations = dale.eval(x=self.test_data, s=0)
+                    explanations = dale.eval(x=self.test_data[:, 0], s=0)
                     self._results[ExplainabilityMethodsEnum.DALE] = {
                         "explainer": dale,
                         "results": explanations,

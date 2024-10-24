@@ -97,11 +97,12 @@ print("Mean accuracy: {}".format(neural_net.score(X_t_test, y_test)))
 
 # Introduce explainability
 # ALE
-from alibi.explainers import ALE
+from alibi.explainers import ALE, plot_ale
 
 ale_explainer = ALE(
     neural_net.predict_proba,
     feature_names=featurisation.get_feature_names_out(),
-    target_names=["False", "True"],
+    target_names=[False, True],
 )
 explanation = ale_explainer.explain(X_t_train)
+plot_ale(explanation)
