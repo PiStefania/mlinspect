@@ -35,7 +35,7 @@ class Explainer(Inspection):
         methods: List[ExplainabilityMethodsEnum],
         test_data: Any,
         feature_names: Optional[List[str]],
-        test_labels: Optional[List[str]],
+        test_labels: Optional[List[Any]],
     ) -> None:
         # Inspection generic attributes
         self._operator_type: OperatorType | None = None
@@ -191,7 +191,7 @@ class Explainer(Inspection):
                         data=train_data, model=model, model_jac=model_grad
                     )
                     dale.fit()
-                    explanations = dale.eval(x=self.test_data, s=0)
+                    explanations = dale.eval(x=self.test_data[:, 0], s=0)
                     self._results[ExplainabilityMethodsEnum.DALE] = {
                         "explainer": dale,
                         "results": explanations,

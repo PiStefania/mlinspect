@@ -58,7 +58,7 @@ explainer = lime.lime_tabular.LimeTabularExplainer(
     transformed_data,
     mode="classification",
     feature_names=income_pipeline[0].get_feature_names_out(),
-    class_names=["False", "True"],
+    class_names=[False, True],
 )
 test_data = np.array(transformed_data[0])
 result = explainer.explain_instance(

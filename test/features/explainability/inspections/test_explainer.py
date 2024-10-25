@@ -467,7 +467,7 @@ def get_healthcare_explainability_method_args() -> Dict[str, Any]:
         ],
         "test_data": X_t_test.view(np.ndarray),
         "feature_names": featurisation.get_feature_names_out(),
-        "test_labels": ["False", "True"],
+        "test_labels": [False, True],
     }
 
 
