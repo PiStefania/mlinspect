@@ -35,7 +35,7 @@ class Explainer(Inspection):
         methods: List[ExplainabilityMethodsEnum],
         test_data: Any,
         feature_names: Optional[List[str]],
-        test_labels: Optional[List[str]],
+        test_labels: Optional[List[Any]],
     ) -> None:
         # Inspection generic attributes
         self._operator_type: OperatorType | None = None
